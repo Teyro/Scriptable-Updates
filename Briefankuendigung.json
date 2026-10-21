@@ -1,12 +1,13 @@
 {
   "name": "Briefankuendigung",
-  "version": "1.0",
+  "version": "1.1",
   "datum": "2026-10-21",
   "neu": [
-    "Erste Version"
+    "Liest jetzt die HACS-Integration",
+    "Mehrere Postfächer: alle oder nur eins (z. B. Johanna)"
   ],
-  "pruef": "440d7094ea9290b7e4cd65f344e91b16d7fa0e7ac32302c5e0ba08465d17d3c5",
+  "pruef": "396fedd147ba816155a7fc04e9ead810195239e4afcebf653ee7fefe642b2056",
   "datei": "Briefankuendigung.js.enc",
   "verschluesselt": true,
-  "nonce": "75c210b05d1bbe884bc58a75"
+  "nonce": "44b3d684377ed608b5c8929c"
 }
