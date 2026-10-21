@@ -1,0 +1,12 @@
+{
+  "name": "Briefankuendigung",
+  "version": "1.0",
+  "datum": "2026-10-21",
+  "neu": [
+    "Erste Version"
+  ],
+  "pruef": "440d7094ea9290b7e4cd65f344e91b16d7fa0e7ac32302c5e0ba08465d17d3c5",
+  "datei": "Briefankuendigung.js.enc",
+  "verschluesselt": true,
+  "nonce": "75c210b05d1bbe884bc58a75"
+}
