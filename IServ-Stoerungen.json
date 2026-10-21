@@ -1,12 +1,13 @@
 {
   "name": "IServ-Störungen",
-  "version": "0.3",
+  "version": "0.3.1",
   "datum": "2026-10-21",
   "neu": [
-    "Automatische Updates"
+    "Updates funktionieren jetzt",
+    "Links aus dem Widget klappen auch, wenn das Skript umbenannt wurde"
   ],
-  "pruef": "883d0a108014fe28a0aa83ff917f09322fc7c78412c6bd16f33ee96061767e17",
+  "pruef": "8aa2e7e05a96011fd6026eb47ef255ac0baa143cda1b22b8e77cdfe6a54242be",
   "datei": "IServ-Stoerungen.js.enc",
   "verschluesselt": true,
-  "nonce": "215b1eb8fe43f3a45cf28833"
+  "nonce": "ce97bfc453e76dc4bbe61cbc"
 }

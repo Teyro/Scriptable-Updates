@@ -1,13 +1,13 @@
 {
   "name": "Briefankuendigung",
-  "version": "1.1",
+  "version": "1.1.1",
   "datum": "2026-10-21",
   "neu": [
-    "Liest jetzt die HACS-Integration",
-    "Mehrere Postfächer: alle oder nur eins (z. B. Johanna)"
+    "Updates funktionieren jetzt",
+    "Links aus dem Widget klappen auch, wenn das Skript umbenannt wurde"
   ],
-  "pruef": "396fedd147ba816155a7fc04e9ead810195239e4afcebf653ee7fefe642b2056",
+  "pruef": "351a90b3c557ae6dc87170a0a883b29d7382cb501b771244ac7901365195ef2a",
   "datei": "Briefankuendigung.js.enc",
   "verschluesselt": true,
-  "nonce": "44b3d684377ed608b5c8929c"
+  "nonce": "20ee286797dc0c503e0e1595"
 }

@@ -1,11 +1,12 @@
 {
   "name": "AldiTalk",
-  "version": "3.1",
+  "version": "3.1.1",
   "datum": "2026-10-21",
   "neu": [
-    "Automatische Updates (einmal am Tag, unter ⬆️ Updates einstellbar)"
+    "Updates funktionieren jetzt",
+    "Links aus dem Widget klappen auch, wenn das Skript umbenannt wurde"
   ],
-  "pruef": "6f1d6b5afbbdca1a61731453343fd709e3678f5a1acc329b2c8f376faa3c045b",
+  "pruef": "39e5f2ce5ef6e7a0f63e87d177a61db90946d1ea9ea55e65a14fb0d8421d46e6",
   "datei": "AldiTalk.js",
   "verschluesselt": false
 }

@@ -57,7 +57,7 @@ async function updateInstallieren(m) {
   let code;
   if (m.verschluesselt) {
     if (!UPDATE_SCHLUESSEL) throw new Error("Kein Schlüssel für verschlüsselte Updates");
-    const bytes = (await r.loadData()).getBytes();
+    const bytes = (await r.load()).getBytes(); // Scriptable: load() liefert Data
     code = utf8Text(chacha20(hexBytes(UPDATE_SCHLUESSEL), hexBytes(m.nonce), bytes));
   } else {
     code = await r.loadString();
@@ -103,7 +103,7 @@ async function updateMitteilung(titel, text, mitLink) {
     n.title = titel;
     n.body = text;
     n.identifier = "update-" + UPDATE_ID;
-    if (mitLink) n.openURL = "scriptable:///run/" + encodeURIComponent(SCRIPT_NAME) + "?update=1";
+    if (mitLink) n.openURL = "scriptable:///run/" + encodeURIComponent(AUFRUF_NAME) + "?update=1";
     await n.schedule();
   } catch (e) { /* Mitteilungen nicht erlaubt */ }
 }

@@ -1,12 +1,13 @@
 {
   "name": "IServ-Abwesenheiten",
-  "version": "0.9",
+  "version": "0.9.1",
   "datum": "2026-10-21",
   "neu": [
-    "Automatische Updates"
+    "Updates funktionieren jetzt",
+    "Links aus dem Widget klappen auch, wenn das Skript umbenannt wurde"
   ],
-  "pruef": "cc51e6c83f769642a31d76f9daeed61fa8f70705ac493a99abd568bb1cf866da",
+  "pruef": "f6ba382c0996ef58bb065892eda429a7e98ecefbefabe536dbb0fa92b1f26c34",
   "datei": "IServ-Abwesenheiten.js.enc",
   "verschluesselt": true,
-  "nonce": "cfcf54fb868842420469e2c3"
+  "nonce": "f14f4f639358429a057d8ba2"
 }
