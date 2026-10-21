@@ -1,0 +1,11 @@
+{
+  "name": "AldiTalk",
+  "version": "3.1",
+  "datum": "2026-10-21",
+  "neu": [
+    "Automatische Updates (einmal am Tag, unter ⬆️ Updates einstellbar)"
+  ],
+  "pruef": "6f1d6b5afbbdca1a61731453343fd709e3678f5a1acc329b2c8f376faa3c045b",
+  "datei": "AldiTalk.js",
+  "verschluesselt": false
+}

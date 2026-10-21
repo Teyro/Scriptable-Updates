@@ -1,0 +1,13 @@
+{
+  "name": "Edupool-Aufgaben",
+  "version": "2.1",
+  "datum": "2026-10-21",
+  "neu": [
+    "Abgelaufene Freigabe: sofort neu verbinden",
+    "Automatische Updates"
+  ],
+  "pruef": "5d035e42b49881f9a6986f1bb45596c3fe06c3224e89167e933f964c129650b3",
+  "datei": "Edupool-Aufgaben.js.enc",
+  "verschluesselt": true,
+  "nonce": "54ca4cd6529b50d0b30453cb"
+}

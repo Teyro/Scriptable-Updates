@@ -1,0 +1,12 @@
+{
+  "name": "IServ-Abwesenheiten",
+  "version": "0.9",
+  "datum": "2026-10-21",
+  "neu": [
+    "Automatische Updates"
+  ],
+  "pruef": "cc51e6c83f769642a31d76f9daeed61fa8f70705ac493a99abd568bb1cf866da",
+  "datei": "IServ-Abwesenheiten.js.enc",
+  "verschluesselt": true,
+  "nonce": "cfcf54fb868842420469e2c3"
+}

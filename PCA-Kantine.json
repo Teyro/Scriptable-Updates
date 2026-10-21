@@ -1,0 +1,16 @@
+{
+  "name": "PCA-Kantine",
+  "version": "3.1",
+  "datum": "2026-10-21",
+  "neu": [
+    "Gerichte in der Übersicht mit ⭐ oder 👎 merken (antippen oder lange drücken)",
+    "Ferien werden erkannt, ganze Ferienwoche in einer Zeile mit Ausblick",
+    "„Nächste Woche ›“ im großen Widget öffnet die Folgewoche",
+    "Wochenzeilen sauber eingerückt",
+    "Automatische Updates"
+  ],
+  "pruef": "73f7d86f0b50bdb6111855ff9451a92861bcef927fae52a71ef95a225ca9e303",
+  "datei": "PCA-Kantine.js.enc",
+  "verschluesselt": true,
+  "nonce": "c74c2ad2ae681b074885cdf4"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "IServ-Störungen",
+  "version": "0.3",
+  "datum": "2026-10-21",
+  "neu": [
+    "Automatische Updates"
+  ],
+  "pruef": "883d0a108014fe28a0aa83ff917f09322fc7c78412c6bd16f33ee96061767e17",
+  "datei": "IServ-Stoerungen.js.enc",
+  "verschluesselt": true,
+  "nonce": "215b1eb8fe43f3a45cf28833"
+}
