@@ -1,12 +1,14 @@
 {
   "name": "Wo-ist",
-  "version": "1.0",
+  "version": "1.1",
   "datum": "2026-10-22",
   "neu": [
-    "Erste Version: Personen, Geräte und Objekte aus Home Assistant auf OpenStreetMap-Karten"
+    "Knöpfe Route/Aktualisieren sauber unter dem Eintrag",
+    "Satellitenkarte als Standard",
+    "Entfernung jetzt zu deinem iPhone statt zu Zuhause"
   ],
-  "pruef": "bdef0cc4e483ceb03342b4329f8c8c5a01e6c2363f70a2f3e84c952491d7c45a",
+  "pruef": "e6f7f3cb8aaab3b1eb7e95af782afab29b9eb0b58442fffd1218cb9bace18de3",
   "datei": "Wo-ist.js.enc",
   "verschluesselt": true,
-  "nonce": "1e413d3c22b0207e7be9d12a"
+  "nonce": "785c7470ec66cdf62df894a7"
 }
