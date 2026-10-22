@@ -1,13 +1,17 @@
 {
   "name": "PCA-Kantine",
-  "version": "3.1.1",
-  "datum": "2026-10-21",
+  "version": "3.2",
+  "datum": "2026-10-22",
   "neu": [
-    "Updates funktionieren jetzt",
-    "Links aus dem Widget klappen auch, wenn das Skript umbenannt wurde"
+    "Siri: „Hey Siri, Kantine“",
+    "„Wie war's?“ nach dem Essen mit ⭐/👎",
+    "Guthaben reicht bis … und Aufladen-Erinnerung",
+    "Statistik je Monat",
+    "Bestellschluss-Erinnerung",
+    "Wochenplan als Bild teilen"
   ],
-  "pruef": "23107da9ca6faae36035d914f4fc50eaf84e4db1d3f1cd302c76d8556ed4f046",
+  "pruef": "8871681c2b85062edb9f153e8dc8eac198c53fc0b12247491e7b9d7b1dfe219c",
   "datei": "PCA-Kantine.js.enc",
   "verschluesselt": true,
-  "nonce": "2cf12bd776dd9c15f695ddb4"
+  "nonce": "8c5b2e3d46398999121c4365"
 }
