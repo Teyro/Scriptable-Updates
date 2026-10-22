@@ -1,13 +1,16 @@
 {
   "name": "Briefankuendigung",
-  "version": "1.1.1",
-  "datum": "2026-10-21",
+  "version": "1.2",
+  "datum": "2026-10-22",
   "neu": [
-    "Updates funktionieren jetzt",
-    "Links aus dem Widget klappen auch, wenn das Skript umbenannt wurde"
+    "Pakete (📦) und wichtige Absender (⚠️)",
+    "Morgens eine Mitteilung, was heute kommt",
+    "Siri: „Hey Siri, kommt heute Post?“",
+    "Archiv mit Suche",
+    "„✓ Angekommen“ abhaken"
   ],
-  "pruef": "351a90b3c557ae6dc87170a0a883b29d7382cb501b771244ac7901365195ef2a",
+  "pruef": "f577ae2fa3cb51999ab31f8f029ab982f8571f01334ba0c2338b2d2531b5722c",
   "datei": "Briefankuendigung.js.enc",
   "verschluesselt": true,
-  "nonce": "20ee286797dc0c503e0e1595"
+  "nonce": "87376b043037ebb6ec93a9cf"
 }
