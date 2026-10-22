@@ -1,14 +1,13 @@
 {
   "name": "Wo-ist",
-  "version": "1.2",
+  "version": "1.3",
   "datum": "2026-10-22",
   "neu": [
-    "Verlauf per Knopf: 30 Min., 3 Std. oder 6 Std. mit Startzeit und Strecke",
-    "Neue Symbole, Akku-Anzeige und weiße Stecknadeln wie bei Apple",
-    "Fehler behoben: Widget-Vorschau, Karte hinter dem Blatt, Speicher"
+    "Mehrere Home-Assistant-Installationen: Menü → Home Assistant → Weiteres hinzufügen",
+    "Profilbilder rund mit schmalem Ring wie bei Apple, Stecknadel größer"
   ],
-  "pruef": "0e7cd81c0bc291f8c14984633adf15fe1eebe4d13aef7919b2fa5f03bdc7d312",
+  "pruef": "e525b8f51a97c4c28eb5ea371c23cf73cb1cc742ef876d8eea0debfad633612c",
   "datei": "Wo-ist.js.enc",
   "verschluesselt": true,
-  "nonce": "9a6d5c11e48b9dade0290219"
+  "nonce": "a1ab99c36ea6c15cca580d46"
 }
