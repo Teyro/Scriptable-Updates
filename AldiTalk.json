@@ -1,12 +1,15 @@
 {
   "name": "AldiTalk",
-  "version": "3.2",
+  "version": "3.3",
   "datum": "2026-10-22",
   "neu": [
-    "Großes Widget: höheres Diagramm, Minuten und SMS",
-    "Laufzeit „heute“ statt „0 Tage“"
+    "Siri: „Hey Siri, ALDI TALK“",
+    "Tipps: Volumen übrig, ungewöhnlicher Verbrauch, Tarif verlängert",
+    "Rückblick mit Tarif-Check in der Übersicht",
+    "Erinnerung an die Verlängerung (Einstellungen)",
+    "Alle Rufnummern in einem Widget (Parameter „alle“)"
   ],
-  "pruef": "0d06c56f447b91834e24998104c25278dbe13237b5b89e343f6e56989d128cb8",
+  "pruef": "31d7fa510cd007cced96429cce2f129c16c58a3a5f097a16553c10af38b05b0d",
   "datei": "AldiTalk.js",
   "verschluesselt": false
 }

@@ -26,6 +26,10 @@
 //    "hell"               -> Design (aldi, dunkel, hell, auto)
 //    "roaming" / "inland" -> immer Roaming- bzw. Inlandsvolumen
 //    "en" / "de"          -> Sprache dieses Widgets
+//    "alle"               -> alle Rufnummern des Kontos untereinander (bis zu 4)
+//
+//  Siri: in der Kurzbefehle-App die Aktion „Skript ausführen“ mit diesem Skript
+//  anlegen (z. B. „ALDI TALK“ nennen) – Siri sagt dann Volumen, Verlängerung und Guthaben.
 //
 //  Lehnt ALDI TALK die Zugangsdaten ab, probiert das Widget NICHT weiter
 //  (sonst sperrt ALDI TALK das Konto) – einmal das Skript in der App öffnen.
@@ -34,7 +38,7 @@
 const SCRIPT_NAME = "AldiTalk";
 // Tatsächlicher Name in Scriptable (falls umbenannt, z. B. „PCA“) – für Links aus Widget und Mitteilungen
 const AUFRUF_NAME = (typeof Script !== "undefined" && typeof Script.name === "function" && Script.name()) || SCRIPT_NAME;
-const VERSION = "3.2";
+const VERSION = "3.3";
 
 // --- Endpunkte (Stand: Kundenportal 2026) ---------------------
 const PORTAL = "https://www.alditalk-kundenportal.de";
@@ -74,6 +78,9 @@ const STANDARD = {
   roaming: "auto",           // auto (nach Land) | an (immer Roaming) | aus (immer Inland)
   landManuell: "",           // "" = automatisch erkennen, sonst Ländercode ("DK")
   landIntervall: 1440,       // Standort im Widget prüfen alle … Minuten (Zeitzonenwechsel: sofort)
+  tipps: true,               // Mitteilungen: Volumen übrig, ungewöhnlicher Verbrauch, Tarif verlängert
+  erinnerung: 0,             // Erinnerung an die Verlängerung: 0 = aus, sonst Tage vorher
+  vertragNamen: {},          // eigene Namen für Rufnummern ("0157 1234567" -> "Kim")
 };
 
 const fm = FileManager.local();
@@ -99,12 +106,14 @@ let vertragIndex = einstellungen.vertrag;
 let designWahl = einstellungen.design;
 let roamingWahl = einstellungen.roaming;
 let spracheWahl = einstellungen.sprache;
+let alleVertraege = false;
 for (const teil of widgetParam) {
   if (/^\d+$/.test(teil)) vertragIndex = Math.max(0, parseInt(teil, 10) - 1);
   else if (["aldi", "dunkel", "hell", "auto"].includes(teil)) designWahl = teil;
   else if (teil === "roaming") roamingWahl = "an";
   else if (teil === "inland") roamingWahl = "aus";
   else if (teil === "de" || teil === "en") spracheWahl = teil;
+  else if (teil === "alle" || teil === "all") alleVertraege = true;
 }
 
 // ============================================================
@@ -168,6 +177,39 @@ const TEXTE = {
     n_verlaengerung: (n, g) => `Verlängerung in ${n} Tag${n === 1 ? "" : "en"}, Guthaben nur ${g}.`,
     n_knapp: "ALDI TALK: Volumen wird knapp",
     n_knapp_text: (x, d) => `Bei deinem Verbrauch (${x} GB/Tag) ist es etwa am ${d} leer.`,
+    n_uebrig: "ALDI TALK: Volumen übrig",
+    n_uebrig_text: (x, n, proTag) => `Noch ${x} GB Tarif-Volumen und nur ${n === 1 ? "1 Tag" : n + " Tage"} bis zur Verlängerung – du kannst ruhig mehr nutzen (etwa ${proTag} GB pro Tag).`,
+    n_ungewoehnlich: "ALDI TALK: ungewöhnlich hoher Verbrauch",
+    n_ungewoehnlich_text: (x, schnitt) => `Heute schon ${x} GB verbraucht – sonst etwa ${schnitt} GB am Tag. Läuft vielleicht ein Update, Backup oder Foto-Upload über das Mobilnetz?`,
+    n_verlaengert: "ALDI TALK: Tarif verlängert",
+    n_verlaengert_text: (gb, bis, verbraucht, guthaben, abgebucht) => `Wieder ${gb} GB bis ${bis}` + (bis.endsWith(".") ? "" : ".") + (verbraucht ? ` Im letzten Zeitraum etwa ${verbraucht} GB genutzt.` : "") + ` Guthaben jetzt ${guthaben}` + (abgebucht ? ` (${abgebucht} weniger als vorher).` : "."),
+    n_tipp_roaming: "Tipp: Einstellungen › Mobilfunk › Datenroaming aus.",
+    // Rückblick & Tarif-Check
+    rueckblick: "Rückblick", rueckblick_leer: "Füllt sich ab der nächsten Verlängerung: wie viel du je Zeitraum genutzt hast und ob dein Tarif dazu passt.",
+    rueckblick_bis: (d) => `bis ${d}`, unvollstaendig: "unvollständig",
+    tarif_kleiner: (avg, tarif) => `Du nutzt im Schnitt ${avg} von ${tarif} GB. Ein kleinerer Tarif könnte reichen – und günstiger sein.`,
+    tarif_groesser: (avg, tarif) => `Du brauchst im Schnitt ${avg} GB – fast alles oder mehr als deine ${tarif} GB. Ein größerer Tarif kann günstiger sein als oft nachzubuchen.`,
+    tarif_passt: (avg, tarif) => `Dein Tarif passt: im Schnitt ${avg} von ${tarif} GB genutzt.`,
+    // Siri
+    siri_fehler: (f) => `ALDI TALK konnte ich gerade nicht abfragen. ${f}`,
+    siri_unbegrenzt: "Du hast unbegrenztes Datenvolumen.",
+    siri_volumen: (x, y) => `Du hast noch ${x} von ${y} Gigabyte.`,
+    siri_roaming: (land, x, y) => `In ${land} hast du noch ${x} von ${y} Gigabyte Roaming-Volumen.`,
+    siri_verlaengerung: (n) => (n === 0 ? " Dein Tarif verlängert sich heute." : n === 1 ? " Dein Tarif verlängert sich morgen." : ` Dein Tarif verlängert sich in ${n} Tagen.`),
+    siri_reicht: " Bei deinem Verbrauch reicht das.", siri_leer: (d) => ` Bei deinem Verbrauch ist es etwa am ${d} leer.`,
+    siri_guthaben: (g) => ` Guthaben: ${g}.`, siri_stand: (x) => ` Stand: ${x}.`,
+    m_siri: "🎙 Siri & Kurzbefehle", siri_probe: "▶︎ Probehören",
+    siri_anleitung: "So fragst du Siri nach deinem Volumen:\n\n1. Kurzbefehle-App öffnen → „+“.\n2. Aktion „Skript ausführen“ (Scriptable) hinzufügen und dieses Skript wählen.\n3. Den Kurzbefehl z. B. „ALDI TALK“ nennen.\n\nDann reicht: „Hey Siri, ALDI TALK“.",
+    // Erinnerung
+    e_tipps: (an) => `Tipps (Volumen übrig, hoher Verbrauch, Verlängerung): ${an ? "an" : "aus"}`,
+    e_erinnerung: (n) => `Erinnerung an Verlängerung: ${n ? (n === 1 ? "1 Tag vorher" : n + " Tage vorher") : "aus"}`,
+    erinnerung: "Erinnerung an Verlängerung", erinnerung_text: "Trägt die Verlängerung in die Erinnerungen-App ein – jedes Mal automatisch neu.",
+    erinnerung_aus: "Aus", erinnerung_n: (n) => (n === 1 ? "1 Tag vorher" : `${n} Tage vorher`),
+    erinnerung_titel: (d) => `ALDI TALK: Verlängerung am ${d}`,
+    erinnerung_notiz: (g) => `Guthaben zuletzt: ${g}. Reicht das Guthaben nicht, verlängert ALDI TALK den Tarif nicht.`,
+    erinnerung_fehler: "Kein Zugriff auf Erinnerungen – bitte in den iOS-Einstellungen bei Scriptable erlauben.",
+    erinnerung_ok: (d) => `Eingetragen für ${d}, 18 Uhr.`,
+    e_namen: "Namen der Rufnummern", name_text: "Eigener Name, z. B. „Kim“ – leer lassen für die Rufnummer.",
     // Menüs
     login_titel: "ALDI TALK Login",
     login_text: "Zugangsdaten des Kundenportals (Rufnummer bzw. Benutzername und Passwort). Sie werden nur im iOS-Schlüsselbund gespeichert.",
@@ -254,6 +296,36 @@ const TEXTE = {
     n_verlaengerung: (n, g) => `Renewal in ${n} day${n === 1 ? "" : "s"}, balance only ${g}.`,
     n_knapp: "ALDI TALK: data running low",
     n_knapp_text: (x, d) => `At your usage (${x} GB/day) it will run out around ${d}.`,
+    n_uebrig: "ALDI TALK: data left over",
+    n_uebrig_text: (x, n, proTag) => `Still ${x} GB of plan data and only ${n} day${n === 1 ? "" : "s"} until renewal – feel free to use more (about ${proTag} GB per day).`,
+    n_ungewoehnlich: "ALDI TALK: unusually high usage",
+    n_ungewoehnlich_text: (x, schnitt) => `Already ${x} GB used today – usually about ${schnitt} GB a day. Maybe an update, backup or photo upload is running over mobile data?`,
+    n_verlaengert: "ALDI TALK: plan renewed",
+    n_verlaengert_text: (gb, bis, verbraucht, guthaben, abgebucht) => `${gb} GB again until ${bis}.` + (verbraucht ? ` Last period you used about ${verbraucht} GB.` : "") + ` Balance now ${guthaben}` + (abgebucht ? ` (${abgebucht} less than before).` : "."),
+    n_tipp_roaming: "Tip: Settings › Mobile Data › turn off Data Roaming.",
+    rueckblick: "Review", rueckblick_leer: "Fills up from the next renewal: how much you used per period and whether your plan fits.",
+    rueckblick_bis: (d) => `until ${d}`, unvollstaendig: "incomplete",
+    tarif_kleiner: (avg, tarif) => `On average you use ${avg} of ${tarif} GB. A smaller plan might do – and cost less.`,
+    tarif_groesser: (avg, tarif) => `On average you need ${avg} GB – nearly all or more than your ${tarif} GB. A bigger plan can be cheaper than topping up often.`,
+    tarif_passt: (avg, tarif) => `Your plan fits: on average ${avg} of ${tarif} GB used.`,
+    siri_fehler: (f) => `I couldn't check ALDI TALK right now. ${f}`,
+    siri_unbegrenzt: "You have unlimited data.",
+    siri_volumen: (x, y) => `You have ${x} of ${y} gigabytes left.`,
+    siri_roaming: (land, x, y) => `In ${land} you have ${x} of ${y} gigabytes of roaming data left.`,
+    siri_verlaengerung: (n) => (n === 0 ? " Your plan renews today." : n === 1 ? " Your plan renews tomorrow." : ` Your plan renews in ${n} days.`),
+    siri_reicht: " At your usage that's enough.", siri_leer: (d) => ` At your usage it will run out around ${d}.`,
+    siri_guthaben: (g) => ` Balance: ${g}.`, siri_stand: (x) => ` As of ${x}.`,
+    m_siri: "🎙 Siri & Shortcuts", siri_probe: "▶︎ Listen",
+    siri_anleitung: "How to ask Siri for your data:\n\n1. Open the Shortcuts app → “+”.\n2. Add the action “Run Script” (Scriptable) and choose this script.\n3. Name the shortcut e.g. “ALDI TALK”.\n\nThen just say: “Hey Siri, ALDI TALK”.",
+    e_tipps: (an) => `Tips (data left over, high usage, renewal): ${an ? "on" : "off"}`,
+    e_erinnerung: (n) => `Renewal reminder: ${n ? n + " day" + (n === 1 ? "" : "s") + " before" : "off"}`,
+    erinnerung: "Renewal reminder", erinnerung_text: "Adds the renewal to the Reminders app – automatically renewed every time.",
+    erinnerung_aus: "Off", erinnerung_n: (n) => `${n} day${n === 1 ? "" : "s"} before`,
+    erinnerung_titel: (d) => `ALDI TALK: renewal on ${d}`,
+    erinnerung_notiz: (g) => `Last balance: ${g}. If the balance is too low, ALDI TALK won't renew the plan.`,
+    erinnerung_fehler: "No access to Reminders – please allow it for Scriptable in the iOS settings.",
+    erinnerung_ok: (d) => `Added for ${d}, 6 pm.`,
+    e_namen: "Names of phone numbers", name_text: "Your own name, e.g. “Kim” – leave empty for the number.",
     login_titel: "ALDI TALK login",
     login_text: "Customer portal login (phone number or user name and password). Stored only in the iOS keychain.",
     login_user: "Phone number / user name", login_pass: "Password", speichern: "Save", abbrechen: "Cancel",
@@ -647,6 +719,7 @@ async function holeDaten({ erzwingen = false } = {}) {
     const live = await fetchLive(creds);
     live.ts = Date.now();
     live.version = VERSION;
+    merkeZeitraum(cache, live);
     schreibJSON(cacheName(), live);
     hebeLoginSperreAuf();
     merkeVerlauf(live, "inland");
@@ -695,7 +768,77 @@ function ergaenze(d) {
   // Beide Ansichten für den Umschalter in der Übersicht.
   d.ansichten = { inland: { ...d.inland, ...werte(d.inland) } };
   if (d.roaming) d.ansichten.roaming = { ...d.roaming, ...werte(d.roaming) };
+  d.zeitraeume = liesJSON(zeitraeumeName(), []);
+  d.tarifCheck = tarifCheck(d.zeitraeume);
   return d;
+}
+
+/** Name einer Rufnummer: eigener Name aus den Einstellungen oder die letzten vier Ziffern. */
+function vertragName(label) {
+  const eigen = (einstellungen.vertragNamen || {})[label];
+  if (eigen) return eigen;
+  const ziffern = String(label || "").replace(/\D/g, "");
+  return ziffern.length >= 6 ? "…" + ziffern.slice(-4) : String(label || "");
+}
+
+// ============================================================
+//  Rückblick je Zeitraum und Tarif-Check
+// ============================================================
+const zeitraeumeName = () => `alditalk-zeitraeume-${vertragIndex}.json`;
+
+/**
+ * Hat sich der Tarif verlängert (Vertragsende um mindestens eine Woche nach hinten gerückt)?
+ * Dann den abgelaufenen Zeitraum festhalten. Der Verbrauch kommt aus dem Verlauf (alle
+ * Abnahmen des Restvolumens) – so zählt auch, was aus Gratis- oder Zusatzvolumen kam.
+ */
+function merkeZeitraum(alt, neu) {
+  if (!alt || !alt.vertragsEnde || !neu.vertragsEnde || alt.vertragsEnde === neu.vertragsEnde || alt.unbegrenzt) return;
+  const altEnde = parseDatum(alt.vertragsEnde), neuEnde = parseDatum(neu.vertragsEnde);
+  if (!altEnde || !neuEnde || neuEnde.getTime() - altEnde.getTime() < 7 * 86400000) return;
+  const liste = liesJSON(zeitraeumeName(), []);
+  if (liste.some((z) => z.bis === alt.vertragsEnde)) return;
+  const vorher = liste[liste.length - 1];
+  const vorherEnde = vorher && parseDatum(vorher.bis);
+  const start = vorherEnde ? vorherEnde.getTime() : altEnde.getTime() - 28 * 86400000;
+  const verlauf = liesJSON(verlaufName("inland"), []).filter((e) => e.t >= start - 86400000);
+  let verbraucht = 0;
+  for (let i = 1; i < verlauf.length; i++) if (verlauf[i].t > start) verbraucht += Math.max(0, verlauf[i - 1].left - verlauf[i].left);
+  liste.push({
+    bis: alt.vertragsEnde, tarif: alt.tarif || "", tarifGB: alt.tarifTotal || null, verbraucht: Math.round(verbraucht * 100) / 100,
+    vollstaendig: verlauf.length > 1 && verlauf[0].t <= start + 2 * 86400000,
+    guthabenVorher: alt.guthaben, guthabenNachher: neu.guthaben, neuBis: neu.vertragsEnde, neuGB: neu.tarifTotal || neu.total, ts: Date.now(),
+  });
+  schreibJSON(zeitraeumeName(), liste.slice(-12));
+}
+
+/** Passt der Tarif? Braucht mindestens zwei vollständig erfasste Zeiträume (die letzten drei zählen). */
+function tarifCheck(liste) {
+  const voll = (liste || []).filter((z) => z.vollstaendig && z.tarifGB > 0).slice(-3);
+  if (voll.length < 2) return null;
+  const avg = voll.reduce((summe, z) => summe + z.verbraucht, 0) / voll.length;
+  const tarifGB = voll[voll.length - 1].tarifGB;
+  const art = avg < tarifGB * 0.45 ? "kleiner" : avg > tarifGB * 0.9 ? "groesser" : "passt";
+  return { art, avg, tarifGB, text: t("tarif_" + art, fmtGB(avg, true), fmtGB(tarifGB, true)) };
+}
+
+/** Heute deutlich mehr verbraucht als sonst? { heute, schnitt } – oder null (braucht 4 Tage Verlauf). */
+function ungewoehnlicherVerbrauch(verlauf) {
+  const mitternacht = new Date();
+  mitternacht.setHours(0, 0, 0, 0);
+  const m = mitternacht.getTime();
+  const davor = verlauf.filter((e) => e.t < m && e.t >= m - 14 * 86400000);
+  if (davor.length < 2) return null;
+  const spanne = (davor[davor.length - 1].t - davor[0].t) / 86400000;
+  const basis = davor[davor.length - 1];
+  // Der letzte Wert vor Mitternacht muss vom Vortag sein, sonst zählt alter Verbrauch zu heute.
+  if (spanne < 4 || m - basis.t > 12 * 3600 * 1000) return null;
+  let summe = 0;
+  for (let i = 1; i < davor.length; i++) summe += Math.max(0, davor[i - 1].left - davor[i].left);
+  const schnitt = summe / spanne;
+  const heuteListe = [basis, ...verlauf.filter((e) => e.t >= m)];
+  let heute = 0;
+  for (let i = 1; i < heuteListe.length; i++) heute += Math.max(0, heuteListe[i - 1].left - heuteListe[i].left);
+  return heute >= 0.5 && heute >= 3 * schnitt && heute - schnitt >= 0.5 ? { heute, schnitt } : null;
 }
 
 // ============================================================
@@ -814,10 +957,15 @@ async function fetchLive(creds) {
     const total = s.total * 2 / 3;
     roaming = { left: Math.min(total, s.left), total, unbegrenzt: false, expires: s.expires, geschaetzt: true };
   }
+  // Tarif ohne Zusatz-/Gratis-Volumen: daran hängen Verlängerung und Rückblick.
+  const tarifSumme = summiere(tarifPakete);
   return {
     name: details.firstName || "",
     tarif,
     guthaben: parseFloat(offers.totalBalance),
+    tarifLeft: tarifSumme ? tarifSumme.left : null,
+    tarifTotal: tarifSumme ? tarifSumme.total : null,
+    vertragsEnde: (tarifSumme && tarifSumme.expires) || (summiere(inlandPakete) || {}).expires || "",
     ...summiere(inlandPakete),
     roaming,
     pakete: pakete.map((p) => ({ ...p, left: p.unbegrenzt ? null : p.left, total: p.unbegrenzt ? null : p.total })),
@@ -1076,14 +1224,19 @@ function prognose(verlauf, d) {
 // ============================================================
 async function pruefeWarnungen(d) {
   if (!einstellungen.mitteilungen || d.error || d.stale) return;
-  const zustand = liesJSON("alditalk-mitteilungen.json", {});
+  // Je Rufnummer ein eigener Merkzettel; das Land steht nur im ersten (gilt fürs iPhone, nicht je Vertrag).
+  const hauptDatei = "alditalk-mitteilungen.json";
+  const eigeneDatei = vertragIndex ? `alditalk-mitteilungen-${vertragIndex}.json` : hauptDatei;
+  const haupt = liesJSON(hauptDatei, {});
+  const zustand = vertragIndex ? liesJSON(eigeneDatei, {}) : haupt;
   const zeitraum = (d.ansicht === "roaming" ? "roaming-" : "") + (d.expires || "ohne");
+  const wer = d.vertraege && d.vertraege.length > 1 && d.vertraege[d.vertragIndex] ? ` (${vertragName(d.vertraege[d.vertragIndex].label)})` : "";
   const schicke = async (id, titel, text) => {
     try {
       const n = new Notification();
-      n.identifier = "alditalk-" + id;
+      n.identifier = "alditalk-" + id + (vertragIndex ? "-" + vertragIndex : "");
       n.threadIdentifier = "alditalk";
-      n.title = titel;
+      n.title = titel + (id === "land" ? "" : wer);
       n.body = text;
       n.openURL = skriptURL("dashboard");
       await n.schedule();
@@ -1092,22 +1245,23 @@ async function pruefeWarnungen(d) {
   // Neues Land: einmal sagen, was dort gilt.
   const lage = d.roamingLage || {};
   const land = lage.land || (lage.aktiv ? null : HEIMATLAND);
-  if (land && zustand.land && zustand.land !== land && land !== HEIMATLAND) {
+  if (land && haupt.land && haupt.land !== land && land !== HEIMATLAND) {
     const art = d.ansicht === "roaming" ? t("roaming_volumen") : t("datenvolumen");
     const volumen = d.unbegrenzt ? t("n_unbegrenzt") : t("n_volumen_frei", fmtGB(d.left), art);
     await schicke("land", `ALDI TALK: ${flagge(land)} ${landName(land)}`,
-      lage.eu ? t("n_land_eu", volumen) : t("n_land_welt", volumen));
+      lage.eu ? t("n_land_eu", volumen) : t("n_land_welt", volumen) + " " + t("n_tipp_roaming"));
   }
-  if (land) zustand.land = land;
+  if (land) haupt.land = land;
   const art = d.ansicht === "roaming" ? t("roaming_volumen") : t("datenvolumen");
   if (!d.unbegrenzt && d.left <= einstellungen.warnGB && zustand.volumen !== zeitraum) {
     zustand.volumen = zeitraum;
     await schicke("volumen", t("n_fast_leer", art),
       t("n_nur_noch", fmtGB(d.left)) + (d.resttage !== null ? t("n_noch_laufzeit", d.resttage) : "."));
   }
-  // Verlängerung richtet sich nach dem Tarif, nicht nach einem Roaming-Paket.
-  const vertragTage = d.inland ? resttage(d.inland.expires) : d.resttage;
-  const vertragZeitraum = (d.inland ? d.inland.expires : d.expires) || "ohne";
+  // Verlängerung richtet sich nach dem Tarif – nicht nach einem Roaming- oder Gratis-Paket.
+  const vertragsEnde = d.vertragsEnde || (d.inland ? d.inland.expires : d.expires);
+  const vertragTage = resttage(vertragsEnde);
+  const vertragZeitraum = vertragsEnde || "ohne";
   if (vertragTage !== null && vertragTage <= 3 && !isNaN(d.guthaben) && d.guthaben < einstellungen.warnGuthaben && zustand.guthaben !== vertragZeitraum) {
     zustand.guthaben = vertragZeitraum;
     await schicke("guthaben", t("n_aufladen"), t("n_verlaengerung", vertragTage, fmtEuro(d.guthaben)));
@@ -1116,7 +1270,115 @@ async function pruefeWarnungen(d) {
     zustand.prognose = zeitraum;
     await schicke("prognose", t("n_knapp"), t("n_knapp_text", fmtGB(d.prognose.proTag), fmtDatum(d.prognose.leerAm)));
   }
-  schreibJSON("alditalk-mitteilungen.json", zustand);
+  if (einstellungen.tipps) await pruefeTipps(d, zustand, schicke, vertragTage, vertragZeitraum);
+  schreibJSON(eigeneDatei, zustand);
+  if (vertragIndex) schreibJSON(hauptDatei, haupt);
+}
+
+/** Tipps: Tarif verlängert, Volumen bleibt übrig, heute ungewöhnlich viel verbraucht. */
+async function pruefeTipps(d, zustand, schicke, vertragTage, vertragZeitraum) {
+  const zahl = (x) => typeof x === "number" && isFinite(x);
+  const zr = (d.zeitraeume || [])[(d.zeitraeume || []).length - 1];
+  if (zr && zustand.verlaengert !== zr.bis && Date.now() - zr.ts < 3 * 86400000) {
+    zustand.verlaengert = zr.bis;
+    const weniger = zahl(zr.guthabenVorher) && zahl(zr.guthabenNachher) && zr.guthabenVorher - zr.guthabenNachher > 0.5
+      ? fmtEuro(zr.guthabenVorher - zr.guthabenNachher) : "";
+    await schicke("verlaengert", t("n_verlaengert"), t("n_verlaengert_text", fmtGB(zr.neuGB, true), fmtAblauf(zr.neuBis, false),
+      zr.vollstaendig ? fmtGB(zr.verbraucht, true) : "", fmtEuro(zahl(zr.guthabenNachher) ? zr.guthabenNachher : d.guthaben), weniger));
+  }
+  // Kurz vor der Verlängerung noch viel Tarif-Volumen übrig (mehr, als der übliche Verbrauch braucht)
+  if (d.ansicht === "inland" && !d.unbegrenzt && zahl(d.tarifLeft) && vertragTage !== null && vertragTage >= 1 && vertragTage <= 3
+    && zustand.uebrig !== vertragZeitraum) {
+    const erwartet = (d.prognose && d.prognose.proTag ? d.prognose.proTag : 0) * vertragTage;
+    if (d.tarifLeft - erwartet >= 1 && d.tarifLeft >= 0.2 * (d.tarifTotal || 0)) {
+      zustand.uebrig = vertragZeitraum;
+      await schicke("uebrig", t("n_uebrig"), t("n_uebrig_text", fmtGB(d.tarifLeft, true), vertragTage, fmtGB(d.tarifLeft / vertragTage, true)));
+    }
+  }
+  const heute = tagSchluessel(Date.now());
+  if (!d.unbegrenzt && zustand.ungewoehnlich !== heute) {
+    const u = ungewoehnlicherVerbrauch(liesJSON(verlaufName(d.ansicht), []));
+    if (u) {
+      zustand.ungewoehnlich = heute;
+      await schicke("verbrauch", t("n_ungewoehnlich"), t("n_ungewoehnlich_text", fmtGB(u.heute, true), fmtGB(u.schnitt, true)));
+    }
+  }
+}
+
+// ============================================================
+//  Erinnerung an die Verlängerung (Erinnerungen-App)
+// ============================================================
+const ERINNERUNG = "alditalk-erinnerung.json";
+
+/** Trägt die nächste Verlängerung als Erinnerung ein – einmal je Zeitraum, die alte wird ersetzt. */
+async function pflegeErinnerung(d, { melden = false } = {}) {
+  if (!einstellungen.erinnerung || !d || d.error || typeof Reminder === "undefined") return;
+  const ende = parseDatum(d.vertragsEnde);
+  if (!ende) return;
+  const gemerkt = liesJSON(ERINNERUNG, {});
+  const alt = gemerkt[vertragIndex];
+  if (alt && alt.ende === d.vertragsEnde && alt.tage === einstellungen.erinnerung && !melden) return;
+  const faellig = new Date(ende.getTime() - einstellungen.erinnerung * 86400000);
+  faellig.setHours(18, 0, 0, 0);
+  try {
+    if (alt && alt.id) await entferneErinnerung(alt.id);
+    let id = "";
+    if (faellig.getTime() > Date.now()) {
+      const r = new Reminder();
+      const wer = d.vertraege && d.vertraege.length > 1 && d.vertraege[d.vertragIndex] ? ` (${vertragName(d.vertraege[d.vertragIndex].label)})` : "";
+      r.title = t("erinnerung_titel", fmtDatum(ende.getTime())) + wer;
+      r.notes = t("erinnerung_notiz", fmtEuro(d.guthaben));
+      r.dueDate = faellig;
+      r.dueDateIncludesTime = true;
+      r.save();
+      id = r.identifier || "";
+    }
+    gemerkt[vertragIndex] = { ende: d.vertragsEnde, tage: einstellungen.erinnerung, id };
+    schreibJSON(ERINNERUNG, gemerkt);
+    if (melden && id) await hinweis(t("erinnerung"), t("erinnerung_ok", fmtDatum(faellig.getTime())));
+  } catch (e) {
+    console.error(e);
+    if (melden) await hinweis(t("erinnerung"), t("erinnerung_fehler"));
+  }
+}
+
+async function entferneErinnerung(id) {
+  try {
+    const r = (await Reminder.allIncomplete()).find((x) => x.identifier === id);
+    if (r) r.remove();
+  } catch (e) { /* schon erledigt oder kein Zugriff */ }
+}
+
+// ============================================================
+//  Siri & Kurzbefehle
+// ============================================================
+/** Ein Satz zum Vorlesen: Volumen, Verlängerung, Prognose, Guthaben. */
+function siriSatz(d) {
+  if (d.error) return t("siri_fehler", d.error);
+  const zahl = (x) => dezimal(Math.max(0, x), x >= 100 ? 0 : 1);
+  const lage = d.roamingLage || {};
+  let satz = d.unbegrenzt ? t("siri_unbegrenzt")
+    : d.ansicht === "roaming" ? t("siri_roaming", lage.landName || landName(lage.land), zahl(d.left), zahl(d.total))
+    : t("siri_volumen", zahl(d.left), zahl(d.total));
+  if (lage.aktiv && !lage.eu) satz += " " + t("hinweis_nicht_eu") + ".";
+  const tage = resttage(d.vertragsEnde || d.expires);
+  if (tage !== null) satz += t("siri_verlaengerung", tage);
+  if (!d.unbegrenzt && d.prognose && d.prognose.proTag > 0) satz += d.prognose.reicht ? t("siri_reicht") : t("siri_leer", fmtDatum(d.prognose.leerAm));
+  if (!isNaN(d.guthaben)) satz += t("siri_guthaben", fmtEuro(d.guthaben));
+  if (d.stale) satz += t("siri_stand", fmtRelativ(d.ts));
+  return satz;
+}
+
+async function siriMenue(d) {
+  const a = new Alert();
+  a.title = t("m_siri");
+  a.message = t("siri_anleitung");
+  a.addAction(t("siri_probe"));
+  a.addCancelAction(t("zurueck"));
+  if ((await a.presentAlert()) !== 0) return;
+  const satz = siriSatz(d);
+  try { Speech.speak(satz); } catch (e) { /* ohne Ton */ }
+  await hinweis(t("m_siri"), satz);
 }
 
 // ============================================================
@@ -1142,6 +1404,111 @@ function baueWidget(d, familie) {
   else if (familie === "medium") mittel(w, d, D);
   else gross(w, d, D);
   return w;
+}
+
+/** Daten aller Rufnummern des Kontos (bis zu 4) – nacheinander, die Anmeldung wird geteilt. */
+async function holeAlle(jeVertrag) {
+  const gewaehlt = vertragIndex;
+  vertragIndex = 0;
+  const erste = await holeDaten();
+  const vertraege = erste.vertraege || [];
+  const liste = [{ d: erste, label: vertraege[0] ? vertraege[0].label : "" }];
+  if (jeVertrag) await jeVertrag(erste);
+  for (let i = 1; i < Math.min(4, vertraege.length); i++) {
+    vertragIndex = i;
+    const d = await holeDaten();
+    if (jeVertrag) await jeVertrag(d);
+    liste.push({ d, label: vertraege[i].label });
+  }
+  vertragIndex = gewaehlt;
+  return liste;
+}
+
+function alleWidget(liste, familie) {
+  const D = design();
+  const w = new ListWidget();
+  const groesse = { small: [158, 158], medium: [338, 158], large: [338, 354], extraLarge: [715, 354] }[familie] || [158, 158];
+  w.backgroundImage = hintergrundBild(D, groesse[0], groesse[1]);
+  w.refreshAfterDate = new Date(Date.now() + einstellungen.cacheMin * 60 * 1000);
+  w.url = skriptURL("menu");
+  const erste = liste[0].d;
+  if (erste.error) { fehlerAnsicht(w, erste, D); return w; }
+  const klein = familie === "small";
+  w.setPadding(14, 14, 12, 14);
+  kopf(w, D, auslandTitel(erste) || "ALDI TALK", !klein && erste.name ? t("hallo", erste.name) : "");
+  const gross = familie === "large" || familie === "extraLarge";
+  // Groß mit höchstens zwei Nummern: Platz für den Tagesverbrauch je Nummer
+  const mitDiagramm = gross && liste.length <= 2;
+  for (const { d, label } of liste.slice(0, gross ? 4 : 2)) {
+    w.addSpacer(klein ? 6 : mitDiagramm ? 12 : 8);
+    vertragZeile(w, d, label, D, klein, groesse[0] - 28);
+    if (mitDiagramm && !d.error && !d.unbegrenzt) {
+      w.addSpacer(6);
+      const max = Math.max(...d.tageVerbrauch.map((x) => x.gb));
+      const zt = w.addText(t("verbrauch_pro_tag") + " · " + (max > 0 ? t("heute_gb", fmtGB(d.tageVerbrauch[d.tageVerbrauch.length - 1].gb)) : t("verlauf_sammelt")));
+      zt.font = Font.systemFont(9);
+      zt.textColor = farbe(D.text3);
+      w.addSpacer(3);
+      const bild = w.addImage(balkenBild(d.tageVerbrauch, d.tagesbudget, D, groesse[0] - 28, 64));
+      bild.imageSize = new Size(groesse[0] - 28, 64);
+    }
+  }
+  w.addSpacer();
+  if (!klein) fussZeile(w, erste, D);
+  return w;
+}
+
+function vertragZeile(w, d, label, D, klein, breite) {
+  const z = w.addStack();
+  z.centerAlignContent();
+  const n = z.addText(vertragName(label) || "ALDI TALK");
+  n.font = Font.semiboldRoundedSystemFont(klein ? 11 : 13);
+  n.textColor = farbe(D.text);
+  n.lineLimit = 1;
+  z.addSpacer(4);
+  if (!d.error && d.ansicht === "roaming") {
+    const r = z.addText(flagge(d.roamingLage.land));
+    r.font = Font.systemFont(klein ? 10 : 12);
+  }
+  z.addSpacer();
+  const v = z.addText(d.error ? "⚠︎" : d.unbegrenzt ? "∞" : klein ? `${fmtGB(d.left)} GB` : `${fmtGB(d.left)} / ${fmtGB(d.total)} GB`);
+  v.font = Font.semiboldRoundedSystemFont(klein ? 11 : 13);
+  v.textColor = d.error ? farbe(STATUS.warnung) : farbe(D.text);
+  v.lineLimit = 1;
+  v.minimumScaleFactor = 0.7;
+  w.addSpacer(3);
+  const b = w.addImage(fuellBalken(d.error ? 0 : d.pct, d.error ? farbe(D.grau) : statusFarbe(d, D), farbe(D.spur), breite));
+  b.imageSize = new Size(breite, 6);
+  w.addSpacer(2);
+  // Klein nur Status bzw. Laufzeit, sonst auch das Guthaben
+  const teile = d.error ? [d.error]
+    : [d.status !== "gut" ? statusText(d) : (d.resttage !== null ? t(klein ? "noch_tage" : "noch_tage_lang", d.resttage) : null), klein || isNaN(d.guthaben) ? null : fmtEuro(d.guthaben)];
+  const u = w.addText(teile.filter(Boolean).join(" · "));
+  u.font = Font.systemFont(klein ? 9 : 10);
+  u.textColor = d.error || d.status !== "gut" ? statusFarbe(d.error ? { status: "warnung" } : d, D) : farbe(D.text2);
+  u.lineLimit = 1;
+}
+
+/** Waagrechter Füllbalken (doppelt aufgelöst). */
+function fuellBalken(pct, fuell, spur, breite) {
+  const s = 2, h = 6;
+  const ctx = new DrawContext();
+  ctx.size = new Size(breite * s, h * s);
+  ctx.opaque = false;
+  ctx.respectScreenScale = false;
+  const hinten = new Path();
+  hinten.addRoundedRect(new Rect(0, 0, breite * s, h * s), h * s / 2, h * s / 2);
+  ctx.addPath(hinten);
+  ctx.setFillColor(spur);
+  ctx.fillPath();
+  if (pct > 0) {
+    const vorn = new Path();
+    vorn.addRoundedRect(new Rect(0, 0, Math.max(h * s, breite * s * Math.min(1, pct)), h * s), h * s / 2, h * s / 2);
+    ctx.addPath(vorn);
+    ctx.setFillColor(fuell);
+    ctx.fillPath();
+  }
+  return ctx.getImage();
 }
 
 /** SF-Symbol als Bild – mit Rückfall, falls es das Symbol auf dieser iOS-Version nicht gibt. */
@@ -1749,6 +2116,16 @@ function dashboardHTML(d) {
     durchschnitt: d.prognose ? t("durchschnitt", fmtGB(d.prognose.proTag)) : "",
     guthabenText: isNaN(d.guthaben) ? "–" : fmtEuro(d.guthaben),
     fussText: t("aktualisiert", d.ts ? fmtRelativ(d.ts) : "–") + " · ALDI TALK Widget " + VERSION,
+    rueckblick: {
+      titel: t("rueckblick"),
+      text: d.tarifCheck ? d.tarifCheck.text : (d.zeitraeume || []).length ? "" : t("rueckblick_leer"),
+      liste: (d.zeitraeume || []).slice(-6).reverse().map((z) => ({
+        name: t("rueckblick_bis", fmtDatum(parseDatum(z.bis) ? parseDatum(z.bis).getTime() : z.ts)) + (z.vollstaendig ? "" : " · " + t("unvollstaendig")),
+        wert: fmtGB(z.verbraucht, true) + (z.tarifGB ? " / " + fmtGB(z.tarifGB, true) : "") + " GB",
+        anteil: z.tarifGB ? z.verbraucht / z.tarifGB : null,
+        aus: !z.vollstaendig,
+      })),
+    },
     lang: L,
     S,
   }, (k, v) => (v === Infinity ? null : v)).replace(/</g, "\\u003c");
@@ -1834,6 +2211,7 @@ summary { cursor: pointer; font-size: 13px; color: var(--text-2); margin-top: 8p
 <svg id="diagramm" width="100%" height="170" role="img"></svg>
 <details><summary id="vTabelle"></summary><table id="tabelle"><thead><tr><th id="thTag"></th><th id="thVerbrauch"></th></tr></thead><tbody></tbody></table></details></section>
 <section class="karte" id="pakete"><h2 id="pTitel"></h2></section>
+<section class="karte" id="rueckblick"><h2 id="rTitel"></h2><div class="klein" id="rText"></div></section>
 <div class="knoepfe">
   <a class="haupt" href="aldi://book"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span id="kNach"></span></a>
   <a href="aldi://refresh"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg><span id="kAkt"></span></a>
@@ -1974,14 +2352,14 @@ document.addEventListener("pointerdown", (e) => { if (!(e.target instanceof SVGR
 
 // Pakete mit kleinem Füllbalken; im Ausland nur die Roaming-Pakete oben, der Rest ausgegraut darunter.
 const pakete = document.getElementById("pakete");
-const paket = (name, wert, anteil, aus) => {
+const paket = (name, wert, anteil, aus, ziel = pakete) => {
   const p = document.createElement("div"); p.className = "paket" + (aus ? " aus" : "");
   const z = document.createElement("div"); z.className = "z";
   const n = document.createElement("span"); n.textContent = name;
   const w = document.createElement("span"); w.textContent = wert;
   z.append(n, w); p.appendChild(z);
   if (anteil !== null) { const m = document.createElement("div"); m.className = "m"; const f = document.createElement("div"); f.style.width = Math.round(Math.max(0, Math.min(1, anteil)) * 100) + "%"; m.appendChild(f); p.appendChild(m); }
-  pakete.appendChild(p);
+  ziel.appendChild(p);
 };
 const datenPaket = (p, aus) => paket((p.roaming ? "🌍 " : "") + p.name, p.unbegrenzt ? S.unbegrenzt : gb(p.left) + " / " + gb(p.total) + " GB", p.unbegrenzt || !p.total ? null : p.left / p.total, aus);
 const gruppe = (text) => { const g = document.createElement("div"); g.className = "gruppe"; g.textContent = text; pakete.appendChild(g); };
@@ -1993,6 +2371,11 @@ if (d.ansicht === "roaming") {
   (d.pakete || []).forEach(p => datenPaket(p, false));
 }
 for (const s of d.sonstige || []) paket(S[s.typ] || s.typ, s.unbegrenzt ? S.flat : zahl(s.left, 0) + " / " + zahl(s.total, 0), null, false);
+const rb = d.rueckblick;
+setze("rTitel", rb.titel);
+setze("rText", rb.text);
+document.getElementById("rText").hidden = !rb.text;
+for (const z of rb.liste) paket(z.name, z.wert, z.anteil, z.aus, document.getElementById("rueckblick"));
 setze("fuss", d.fussText);
 </script></body></html>`;
 }
@@ -2034,6 +2417,7 @@ async function hauptmenue() {
       [t("m_portal"), async () => { Safari.openInApp(OVERVIEW, false); return true; }],
       [t("m_land"), async () => { await landMenue(); return false; }],
       [t("m_vorschau"), async () => { await vorschauMenue(d); return true; }],
+      [t("m_siri"), async () => { await siriMenue(d); return false; }],
       [t("m_einstellungen"), async () => (await einstellungsMenue(d)) === "reset"],
       ["⬆️ Updates", async () => updateMenue()],
       [t("m_zugang"), async () => {
@@ -2133,10 +2517,15 @@ async function einstellungsMenue(d) {
       [t("e_volumen_warnung", fmtGB(einstellungen.warnGB)), "warnGB"],
       [t("e_guthaben_warnung", fmtEuro(einstellungen.warnGuthaben)), "warnGuthaben"],
       [t("e_mitteilungen", einstellungen.mitteilungen), "mitteilungen"],
+      [t("e_tipps", einstellungen.tipps), "tipps"],
+      [t("e_erinnerung", einstellungen.erinnerung), "erinnerung"],
       [t("e_intervall", einstellungen.cacheMin), "cacheMin"],
       [t("m_land"), "land"],
     ];
-    if (d && d.vertraege && d.vertraege.length > 1) punkte.push([t("e_vertrag", d.vertraege[Math.min(einstellungen.vertrag, d.vertraege.length - 1)].label), "vertrag"]);
+    if (d && d.vertraege && d.vertraege.length > 1) {
+      punkte.push([t("e_vertrag", d.vertraege[Math.min(einstellungen.vertrag, d.vertraege.length - 1)].label), "vertrag"]);
+      punkte.push([t("e_namen"), "namen"]);
+    }
     punkte.push([t("e_verlauf"), "verlauf"]);
     punkte.push([t("e_debug"), "rohdaten"]);
     for (const [tx] of punkte) a.addAction(tx);
@@ -2172,6 +2561,37 @@ async function einstellungsMenue(d) {
       if (v !== null) einstellungen.warnGuthaben = Math.max(0, v);
     } else if (was === "mitteilungen") {
       einstellungen.mitteilungen = !einstellungen.mitteilungen;
+    } else if (was === "tipps") {
+      einstellungen.tipps = !einstellungen.tipps;
+    } else if (was === "erinnerung") {
+      const optionen = [0, 1, 3];
+      const w = await auswahl(t("erinnerung"), optionen.map((o) => (o ? t("erinnerung_n", o) : t("erinnerung_aus"))));
+      if (w >= 0) {
+        einstellungen.erinnerung = optionen[w];
+        speichereEinstellungen();
+        if (optionen[w]) await pflegeErinnerung(d, { melden: true });
+        else {
+          const gemerkt = liesJSON(ERINNERUNG, {});
+          for (const k of Object.keys(gemerkt)) if (gemerkt[k].id) await entferneErinnerung(gemerkt[k].id);
+          loesche(ERINNERUNG);
+        }
+      }
+    } else if (was === "namen") {
+      const w = await auswahl(t("e_namen"), d.vertraege.map((v) => v.label + ((einstellungen.vertragNamen || {})[v.label] ? " – " + einstellungen.vertragNamen[v.label] : "")));
+      if (w >= 0) {
+        const label = d.vertraege[w].label;
+        const a2 = new Alert();
+        a2.title = label;
+        a2.message = t("name_text");
+        a2.addTextField("", (einstellungen.vertragNamen || {})[label] || "");
+        a2.addAction(t("speichern"));
+        a2.addCancelAction(t("abbrechen"));
+        if ((await a2.presentAlert()) === 0) {
+          einstellungen.vertragNamen = Object.assign({}, einstellungen.vertragNamen);
+          const name = a2.textFieldValue(0).trim();
+          if (name) einstellungen.vertragNamen[label] = name; else delete einstellungen.vertragNamen[label];
+        }
+      }
     } else if (was === "cacheMin") {
       const optionen = [15, 30, 60, 120];
       const w = await auswahl(t("aktualisieren_alle"), optionen.map((o) => t("minuten_n", o)));
@@ -2572,6 +2992,9 @@ function chacha20(schluessel, nonce, daten) {
 //  Einstieg (am Ende der Datei: alle Funktionen und Konstanten sind dann bereit)
 // ============================================================
 const param = (args.queryParameters && args.queryParameters.param) || "";
+// Aus Siri oder der Kurzbefehle-App (ohne die App zu öffnen): nur einen Satz zurückgeben.
+const KURZBEFEHL = !IM_WIDGET && (!!config.runsWithSiri || param === "siri"
+  || (config.runsInApp === false && !config.runsInNotification && !config.runsInActionExtension));
 // Land prüfen – parallel zum Login. In der App bei jedem Öffnen (höchstens alle 10 Minuten),
 // im Widget im eingestellten Abstand und sofort nach einem Zeitzonenwechsel.
 if (roamingWahl !== "aus" && !einstellungen.landManuell && param !== "book" && param !== "portal") {
@@ -2591,10 +3014,19 @@ if (param === "update" || (args.queryParameters && args.queryParameters.update))
   await zeigeDashboard(await holeDaten());
 } else if (param === "menu") {
   await hauptmenue();
+} else if (KURZBEFEHL) {
+  const satz = siriSatz(await holeDaten());
+  Script.setShortcutOutput(satz);
+  if (config.runsWithSiri) Speech.speak(satz);
+} else if (IM_WIDGET && alleVertraege && !(config.widgetFamily || "").startsWith("accessory")) {
+  const liste = await holeAlle(async (d) => { await pruefeWarnungen(d); await pflegeErinnerung(d); });
+  Script.setWidget(alleWidget(liste, config.widgetFamily || "small"));
+  await updateImHintergrund();
 } else if (IM_WIDGET) {
   const familie = config.widgetFamily || "small";
   const daten = await holeDaten();
   await pruefeWarnungen(daten);
+  await pflegeErinnerung(daten);
   Script.setWidget(baueWidget(daten, familie));
   await updateImHintergrund();
 } else if (!(await updateAnbieten())) {
