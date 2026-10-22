@@ -1,0 +1,12 @@
+{
+  "name": "Wo-ist",
+  "version": "1.0",
+  "datum": "2026-10-22",
+  "neu": [
+    "Erste Version: Personen, Geräte und Objekte aus Home Assistant auf OpenStreetMap-Karten"
+  ],
+  "pruef": "bdef0cc4e483ceb03342b4329f8c8c5a01e6c2363f70a2f3e84c952491d7c45a",
+  "datei": "Wo-ist.js.enc",
+  "verschluesselt": true,
+  "nonce": "1e413d3c22b0207e7be9d12a"
+}
