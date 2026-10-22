@@ -34,7 +34,7 @@
 const SCRIPT_NAME = "AldiTalk";
 // Tatsächlicher Name in Scriptable (falls umbenannt, z. B. „PCA“) – für Links aus Widget und Mitteilungen
 const AUFRUF_NAME = (typeof Script !== "undefined" && typeof Script.name === "function" && Script.name()) || SCRIPT_NAME;
-const VERSION = "3.1.1";
+const VERSION = "3.2";
 
 // --- Endpunkte (Stand: Kundenportal 2026) ---------------------
 const PORTAL = "https://www.alditalk-kundenportal.de";
@@ -119,8 +119,8 @@ let L = ermittleSprache();
 const TEXTE = {
   de: {
     unbegrenzt: "unbegrenzt", frei: "frei", von: "von", heute: "heute", gb_von: (x) => `GB von ${x}`, gb_frei: "GB frei",
-    gb_roaming_frei: "GB Roaming frei", gb_tag: "GB/Tag", tage: (n) => `${n} Tage`, tage_kurz: (n) => `${n} T`,
-    noch_tage: (n) => `noch ${n} T`, noch_tage_lang: (n) => `noch ${n} Tage`,
+    gb_roaming_frei: "GB Roaming frei", gb_tag: "GB/Tag", tage: (n) => (n === 0 ? "heute" : n === 1 ? "1 Tag" : `${n} Tage`), tage_kurz: (n) => (n === 0 ? "heute" : `${n} T`),
+    noch_tage: (n) => (n === 0 ? "endet heute" : `noch ${n} T`), noch_tage_lang: (n) => (n === 0 ? "endet heute" : n === 1 ? "noch 1 Tag" : `noch ${n} Tage`),
     status_leer: "⚠︎ aufgebraucht", status_kritisch: "⚠︎ fast leer", status_warnung: "⚠︎ wird knapp", status_gut: "alles gut",
     alles_gruen: "Alles im grünen Bereich", nicht_aktuell: "nicht aktuell",
     guthaben: "Guthaben", laufzeit: "Laufzeit", gueltig_bis: "gültig bis", pro_tag: "pro Tag", tagesbudget: "Tagesbudget",
@@ -208,8 +208,8 @@ const TEXTE = {
   },
   en: {
     unbegrenzt: "unlimited", frei: "left", von: "of", heute: "today", gb_von: (x) => `GB of ${x}`, gb_frei: "GB left",
-    gb_roaming_frei: "GB roaming left", gb_tag: "GB/day", tage: (n) => `${n} day${n === 1 ? "" : "s"}`, tage_kurz: (n) => `${n} d`,
-    noch_tage: (n) => `${n} d left`, noch_tage_lang: (n) => `${n} day${n === 1 ? "" : "s"} left`,
+    gb_roaming_frei: "GB roaming left", gb_tag: "GB/day", tage: (n) => (n === 0 ? "today" : `${n} day${n === 1 ? "" : "s"}`), tage_kurz: (n) => (n === 0 ? "today" : `${n} d`),
+    noch_tage: (n) => (n === 0 ? "ends today" : `${n} d left`), noch_tage_lang: (n) => (n === 0 ? "ends today" : `${n} day${n === 1 ? "" : "s"} left`),
     status_leer: "⚠︎ used up", status_kritisch: "⚠︎ almost empty", status_warnung: "⚠︎ running low", status_gut: "all good",
     alles_gruen: "All good", nicht_aktuell: "not up to date",
     guthaben: "Balance", laufzeit: "Renews in", gueltig_bis: "valid until", pro_tag: "per day", tagesbudget: "Daily budget",
@@ -1372,14 +1372,24 @@ function gross(w, d, D) {
   ht.font = Font.systemFont(10);
   ht.textColor = farbe(D.text3);
   w.addSpacer(4);
-  const diagramm = w.addImage(balkenBild(d.tageVerbrauch, d.tagesbudget, D, 306, 62));
-  diagramm.imageSize = new Size(306, 62);
+  const diagramm = w.addImage(balkenBild(d.tageVerbrauch, d.tagesbudget, D, 306, 74));
+  diagramm.imageSize = new Size(306, 74);
 
   // Im Ausland nur die Roaming-Pakete – Tarif- und Gratis-Volumen gelten dort nicht.
   const liste = (d.pakete || []).filter((p) => (d.ansicht === "roaming") === !!p.roaming);
   if (liste.length > 1) {
     w.addSpacer(8);
     for (const p of liste.slice(0, 2)) paketZeile(w, p, D);
+  }
+  // Minuten und SMS in einer Zeile (Flat oder Restmenge)
+  const extras = (d.sonstige || []).map((x) => (x.typ === "sms" ? "✉️ " : "📞 ") + (x.unbegrenzt ? t("flat") : Math.round(x.left) + " " + t(x.typ)));
+  if (extras.length) {
+    w.addSpacer(liste.length > 1 ? 2 : 8);
+    const z = w.addStack();
+    const et = z.addText(extras.join("   "));
+    et.font = Font.mediumRoundedSystemFont(10);
+    et.textColor = farbe(D.text2);
+    et.lineLimit = 1;
   }
 
   w.addSpacer();

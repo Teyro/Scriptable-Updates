@@ -1,12 +1,12 @@
 {
   "name": "AldiTalk",
-  "version": "3.1.1",
-  "datum": "2026-10-21",
+  "version": "3.2",
+  "datum": "2026-10-22",
   "neu": [
-    "Updates funktionieren jetzt",
-    "Links aus dem Widget klappen auch, wenn das Skript umbenannt wurde"
+    "Großes Widget: höheres Diagramm, Minuten und SMS",
+    "Laufzeit „heute“ statt „0 Tage“"
   ],
-  "pruef": "39e5f2ce5ef6e7a0f63e87d177a61db90946d1ea9ea55e65a14fb0d8421d46e6",
+  "pruef": "0d06c56f447b91834e24998104c25278dbe13237b5b89e343f6e56989d128cb8",
   "datei": "AldiTalk.js",
   "verschluesselt": false
 }

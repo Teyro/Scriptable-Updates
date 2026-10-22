@@ -1,13 +1,13 @@
 {
   "name": "IServ-Störungen",
-  "version": "0.3.1",
-  "datum": "2026-10-21",
+  "version": "0.4",
+  "datum": "2026-10-22",
   "neu": [
-    "Updates funktionieren jetzt",
-    "Links aus dem Widget klappen auch, wenn das Skript umbenannt wurde"
+    "Neue Optik: farbige Streifen, Zusammenfassung",
+    "Kleines Widget zeigt drei Meldungen"
   ],
-  "pruef": "8aa2e7e05a96011fd6026eb47ef255ac0baa143cda1b22b8e77cdfe6a54242be",
+  "pruef": "8465d8fb3f549a35cc1ccd50e93108fd16f5639c31cb9d7d039ea5d6434c4a79",
   "datei": "IServ-Stoerungen.js.enc",
   "verschluesselt": true,
-  "nonce": "ce97bfc453e76dc4bbe61cbc"
+  "nonce": "a75661562cc8d8a8a0055ff2"
 }
