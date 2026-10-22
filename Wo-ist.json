@@ -1,13 +1,12 @@
 {
   "name": "Wo-ist",
-  "version": "1.3",
+  "version": "1.3.1",
   "datum": "2026-10-22",
   "neu": [
-    "Mehrere Home-Assistant-Installationen: Menü → Home Assistant → Weiteres hinzufügen",
-    "Profilbilder rund mit schmalem Ring wie bei Apple, Stecknadel größer"
+    "Unteres Feld lässt sich wieder richtig verkleinern: Griff oder Überschrift antippen oder nach unten/oben ziehen"
   ],
-  "pruef": "e525b8f51a97c4c28eb5ea371c23cf73cb1cc742ef876d8eea0debfad633612c",
+  "pruef": "b63f21f184f97d31bb19ec9298b4806ae7644020fb1ac3f98fe9058ff8a8b7ac",
   "datei": "Wo-ist.js.enc",
   "verschluesselt": true,
-  "nonce": "a1ab99c36ea6c15cca580d46"
+  "nonce": "40922a1f8d156737410feace"
 }
