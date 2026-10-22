@@ -1,14 +1,14 @@
 {
   "name": "Wo-ist",
-  "version": "1.1",
+  "version": "1.2",
   "datum": "2026-10-22",
   "neu": [
-    "Knöpfe Route/Aktualisieren sauber unter dem Eintrag",
-    "Satellitenkarte als Standard",
-    "Entfernung jetzt zu deinem iPhone statt zu Zuhause"
+    "Verlauf per Knopf: 30 Min., 3 Std. oder 6 Std. mit Startzeit und Strecke",
+    "Neue Symbole, Akku-Anzeige und weiße Stecknadeln wie bei Apple",
+    "Fehler behoben: Widget-Vorschau, Karte hinter dem Blatt, Speicher"
   ],
-  "pruef": "e6f7f3cb8aaab3b1eb7e95af782afab29b9eb0b58442fffd1218cb9bace18de3",
+  "pruef": "0e7cd81c0bc291f8c14984633adf15fe1eebe4d13aef7919b2fa5f03bdc7d312",
   "datei": "Wo-ist.js.enc",
   "verschluesselt": true,
-  "nonce": "785c7470ec66cdf62df894a7"
+  "nonce": "9a6d5c11e48b9dade0290219"
 }
