@@ -27,6 +27,7 @@
 //    "roaming" / "inland" -> immer Roaming- bzw. Inlandsvolumen
 //    "en" / "de"          -> Sprache dieses Widgets
 //    "alle"               -> alle Rufnummern des Kontos untereinander (bis zu 4)
+//    "standby"            -> kleines Widget mit riesiger Zahl (StandBy-Modus)
 //
 //  Siri: in der Kurzbefehle-App die Aktion „Skript ausführen“ mit diesem Skript
 //  anlegen (z. B. „ALDI TALK“ nennen) – Siri sagt dann Volumen, Verlängerung und Guthaben.
@@ -38,7 +39,7 @@
 const SCRIPT_NAME = "AldiTalk";
 // Tatsächlicher Name in Scriptable (falls umbenannt, z. B. „PCA“) – für Links aus Widget und Mitteilungen
 const AUFRUF_NAME = (typeof Script !== "undefined" && typeof Script.name === "function" && Script.name()) || SCRIPT_NAME;
-const VERSION = "3.3";
+const VERSION = "3.4";
 
 // --- Endpunkte (Stand: Kundenportal 2026) ---------------------
 const PORTAL = "https://www.alditalk-kundenportal.de";
@@ -81,21 +82,49 @@ const STANDARD = {
   tipps: true,               // Mitteilungen: Volumen übrig, ungewöhnlicher Verbrauch, Tarif verlängert
   erinnerung: 0,             // Erinnerung an die Verlängerung: 0 = aus, sonst Tage vorher
   vertragNamen: {},          // eigene Namen für Rufnummern ("0157 1234567" -> "Kim")
+  budgetWarnung: true,       // Mitteilung, wenn heute mehr als das Tagesbudget verbraucht ist
+  haSync: false,             // Werte als Sensoren an Home Assistant schicken
 };
 
+// Dateien: lokal – oder (iCloud-Abgleich an) Einstellungen, Verlauf & Co. in iCloud, damit
+// iPhone und iPad dasselbe sehen. Standort und Zwischenspeicher bleiben je Gerät.
 const fm = FileManager.local();
 const ORDNER = fm.documentsDirectory();
-const pfad = (name) => fm.joinPath(ORDNER, name);
+const ICLOUD_MERKER = "alditalk-icloud.an";
+const ICLOUD = (() => { try { return fm.fileExists(fm.joinPath(ORDNER, ICLOUD_MERKER)); } catch (e) { return false; } })();
+const SYNC_DATEIEN = /^alditalk-(einstellungen|verlauf|zeitraeume|aufladungen|mitteilungen|erinnerung)/;
+let fmWolke = null, ORDNER_WOLKE = null;
+function wolke() {
+  if (!fmWolke) {
+    fmWolke = FileManager.iCloud();
+    ORDNER_WOLKE = fmWolke.joinPath(fmWolke.documentsDirectory(), "ALDI-TALK-Daten");
+    if (!fmWolke.fileExists(ORDNER_WOLKE)) fmWolke.createDirectory(ORDNER_WOLKE, true);
+  }
+  return fmWolke;
+}
+const inWolke = (name) => ICLOUD && SYNC_DATEIEN.test(name);
+const fmFuer = (name) => (inWolke(name) ? wolke() : fm);
+const pfad = (name) => (inWolke(name) ? wolke().joinPath(ORDNER_WOLKE, name) : fm.joinPath(ORDNER, name));
+if (ICLOUD) {
+  // Dateien aus iCloud vorher herunterladen (sonst liest man einen Platzhalter)
+  try {
+    const f = wolke();
+    for (const n of f.listContents(ORDNER_WOLKE)) {
+      const p = f.joinPath(ORDNER_WOLKE, n);
+      if (!f.isFileDownloaded(p)) await f.downloadFileFromiCloud(p);
+    }
+  } catch (e) { /* offline – dann mit dem, was da ist */ }
+}
 
 function liesJSON(name, ersatz) {
   try {
-    const p = pfad(name);
-    if (fm.fileExists(p)) return JSON.parse(fm.readString(p));
+    const p = pfad(name), f = fmFuer(name);
+    if (f.fileExists(p)) return JSON.parse(f.readString(p));
   } catch (e) { /* kaputte Datei – Ersatz nehmen */ }
   return ersatz;
 }
-function schreibJSON(name, wert) { fm.writeString(pfad(name), JSON.stringify(wert)); }
-function loesche(name) { const p = pfad(name); if (fm.fileExists(p)) fm.remove(p); }
+function schreibJSON(name, wert) { fmFuer(name).writeString(pfad(name), JSON.stringify(wert)); }
+function loesche(name) { const p = pfad(name), f = fmFuer(name); if (f.fileExists(p)) f.remove(p); }
 
 const einstellungen = Object.assign({}, STANDARD, liesJSON("alditalk-einstellungen.json", {}));
 function speichereEinstellungen() { schreibJSON("alditalk-einstellungen.json", einstellungen); }
@@ -107,6 +136,7 @@ let designWahl = einstellungen.design;
 let roamingWahl = einstellungen.roaming;
 let spracheWahl = einstellungen.sprache;
 let alleVertraege = false;
+let standbyWahl = false;
 for (const teil of widgetParam) {
   if (/^\d+$/.test(teil)) vertragIndex = Math.max(0, parseInt(teil, 10) - 1);
   else if (["aldi", "dunkel", "hell", "auto"].includes(teil)) designWahl = teil;
@@ -114,6 +144,7 @@ for (const teil of widgetParam) {
   else if (teil === "inland") roamingWahl = "aus";
   else if (teil === "de" || teil === "en") spracheWahl = teil;
   else if (teil === "alle" || teil === "all") alleVertraege = true;
+  else if (teil === "standby") standbyWahl = true;
 }
 
 // ============================================================
@@ -210,6 +241,31 @@ const TEXTE = {
     erinnerung_fehler: "Kein Zugriff auf Erinnerungen – bitte in den iOS-Einstellungen bei Scriptable erlauben.",
     erinnerung_ok: (d) => `Eingetragen für ${d}, 18 Uhr.`,
     e_namen: "Namen der Rufnummern", name_text: "Eigener Name, z. B. „Kim“ – leer lassen für die Rufnummer.",
+    // 3.4
+    heute_von: (x, y) => `${x} / ${y} GB`, heute_label: "Heute",
+    n_budget: "ALDI TALK: Tagesbudget überschritten",
+    n_budget_text: (x, y) => `Heute schon ${x} GB verbraucht – dein Tagesbudget sind ${y} GB. Morgen ist es dann etwas weniger.`,
+    e_budget: (an) => `Tagesbudget-Warnung: ${an ? "an" : "aus"}`,
+    standby_frei: "GB frei",
+    aufladungen: "Aufladungen", aufladungen_hinweis: "Erkannt, wenn das Guthaben zwischen zwei Abfragen steigt.",
+    aufladungen_summe: (j, x) => `${j} bisher: ${x}`,
+    tageszeit: "Wann du surfst", tageszeit_sammelt: "Sammelt sich noch – nach ein paar Tagen steht hier, wann du am meisten verbrauchst.",
+    tageszeit_namen: ["Nacht", "Vormittag", "Nachmittag", "Abend"], tageszeit_spannen: ["0–6", "6–12", "12–18", "18–24"],
+    tageszeit_satz: (n, sp, p) => `Am meisten verbrauchst du ${n === "Nacht" ? "nachts" : n === "Vormittag" ? "vormittags" : n === "Nachmittag" ? "nachmittags" : "abends"} (${sp} Uhr): ${p} %.`,
+    m_reise: "🧳 Reise-Vorschau", reise_titel: (f, l) => `${f} ${l}`,
+    reise_inland: "Inland – hier gilt dein normales Datenvolumen.",
+    reise_eu: (x) => `Gehört zum EU-Roaming: Telefonieren und SMS wie zu Hause. Fürs Surfen zählt nur dein EU-Roaming-Volumen – ${x}. Tarif- und Gratis-Volumen gelten dort nicht.`,
+    reise_eu_wert: (x, y) => `zurzeit ${x} von ${y} GB`, reise_eu_geschaetzt: (x) => `geschätzt etwa ${x} GB (⅔ des Tarifs)`,
+    reise_welt: "Außerhalb der EU: kein Inklusiv-Volumen, Surfen und Telefonieren können teuer werden. Tipp: Einstellungen › Mobilfunk › Datenroaming aus, WLAN nutzen – oder im Kundenportal nach einem Auslandspaket schauen.",
+    m_ha: "🏠 Home Assistant", ha_aus: "aus", ha_an: (h) => `an (${h})`,
+    ha_text: "Schickt Restvolumen, Guthaben, Laufzeit und den heutigen Verbrauch als Sensoren an Home Assistant (sensor.aldi_talk_…) – für Dashboards und Automationen. Nach einem Neustart von Home Assistant erscheinen sie beim nächsten Abruf wieder.",
+    ha_vorhanden: (h) => `Zugang verwenden: ${h}`, ha_eingeben: "Adresse und Token eingeben", ha_abschalten: "Ausschalten",
+    ha_adresse: "Home-Assistant-Adresse", ha_token: "Langlebiges Zugriffstoken (Profil → Sicherheit)",
+    ha_ok: "Verbunden – die Sensoren erscheinen nach dem nächsten Abruf.", ha_fehler: (m) => `Hat nicht geklappt: ${m}`,
+    ha_letzter: (x) => `Zuletzt gesendet: ${x}`, ha_admin: "Home Assistant verlangt dafür ein Token eines Administrators.",
+    m_icloud: (an) => `☁️ iPhone & iPad abgleichen: ${an ? "an" : "aus"}`,
+    icloud_text: "Einstellungen, Verlauf, Rückblick und Aufladungen über iCloud teilen – so sehen iPhone und iPad dasselbe. Standort und Zugangsdaten bleiben je Gerät. Danach das Skript einmal neu starten.",
+    icloud_an: "Einschalten", icloud_aus: "Ausschalten", icloud_fertig: "Erledigt – bitte das Skript einmal schließen und neu starten.",
     // Menüs
     login_titel: "ALDI TALK Login",
     login_text: "Zugangsdaten des Kundenportals (Rufnummer bzw. Benutzername und Passwort). Sie werden nur im iOS-Schlüsselbund gespeichert.",
@@ -326,6 +382,30 @@ const TEXTE = {
     erinnerung_fehler: "No access to Reminders – please allow it for Scriptable in the iOS settings.",
     erinnerung_ok: (d) => `Added for ${d}, 6 pm.`,
     e_namen: "Names of phone numbers", name_text: "Your own name, e.g. “Kim” – leave empty for the number.",
+    heute_von: (x, y) => `${x} / ${y} GB`, heute_label: "Today",
+    n_budget: "ALDI TALK: daily budget exceeded",
+    n_budget_text: (x, y) => `Already ${x} GB used today – your daily budget is ${y} GB. Tomorrow it will be a little less.`,
+    e_budget: (an) => `Daily budget warning: ${an ? "on" : "off"}`,
+    standby_frei: "GB left",
+    aufladungen: "Top-ups", aufladungen_hinweis: "Detected when the balance rises between two checks.",
+    aufladungen_summe: (j, x) => `${j} so far: ${x}`,
+    tageszeit: "When you use data", tageszeit_sammelt: "Still collecting – after a few days you'll see when you use the most.",
+    tageszeit_namen: ["Night", "Morning", "Afternoon", "Evening"], tageszeit_spannen: ["0–6", "6–12", "12–18", "18–24"],
+    tageszeit_satz: (n, sp, p) => `You use the most data in the ${n.toLowerCase() === "night" ? "night" : n.toLowerCase()} (${sp} h): ${p} %.`,
+    m_reise: "🧳 Travel preview", reise_titel: (f, l) => `${f} ${l}`,
+    reise_inland: "Germany – your normal data allowance applies.",
+    reise_eu: (x) => `EU roaming: calls and texts like at home. For data only your EU roaming allowance counts – ${x}. Plan and bonus volume don't apply there.`,
+    reise_eu_wert: (x, y) => `currently ${x} of ${y} GB`, reise_eu_geschaetzt: (x) => `estimated about ${x} GB (⅔ of the plan)`,
+    reise_welt: "Outside the EU: no included data, data and calls can get expensive. Tip: Settings › Mobile Data › turn off Data Roaming and use Wi-Fi – or look for a travel pack in the customer portal.",
+    m_ha: "🏠 Home Assistant", ha_aus: "off", ha_an: (h) => `on (${h})`,
+    ha_text: "Sends remaining data, balance, renewal and today's usage as sensors to Home Assistant (sensor.aldi_talk_…) – for dashboards and automations. After a Home Assistant restart they reappear with the next check.",
+    ha_vorhanden: (h) => `Use access: ${h}`, ha_eingeben: "Enter address and token", ha_abschalten: "Turn off",
+    ha_adresse: "Home Assistant address", ha_token: "Long-lived access token (Profile → Security)",
+    ha_ok: "Connected – the sensors appear after the next check.", ha_fehler: (m) => `Didn't work: ${m}`,
+    ha_letzter: (x) => `Last sent: ${x}`, ha_admin: "Home Assistant requires an administrator's token for this.",
+    m_icloud: (an) => `☁️ Sync iPhone & iPad: ${an ? "on" : "off"}`,
+    icloud_text: "Share settings, history, review and top-ups via iCloud so iPhone and iPad show the same. Location and login stay per device. Restart the script afterwards.",
+    icloud_an: "Turn on", icloud_aus: "Turn off", icloud_fertig: "Done – please close and restart the script.",
     login_titel: "ALDI TALK login",
     login_text: "Customer portal login (phone number or user name and password). Stored only in the iOS keychain.",
     login_user: "Phone number / user name", login_pass: "Password", speichern: "Save", abbrechen: "Cancel",
@@ -451,7 +531,7 @@ function vergissZugangsdaten() {
 }
 
 const SPERRE = "alditalk-loginfehler.json";
-const loginSperreAktiv = () => fm.fileExists(pfad(SPERRE));
+const loginSperreAktiv = () => fmFuer(SPERRE).fileExists(pfad(SPERRE));
 const loginSperreText = () => liesJSON(SPERRE, {}).text || "";
 const setzeLoginSperre = (text) => schreibJSON(SPERRE, { text, ts: Date.now() });
 const hebeLoginSperreAuf = () => loesche(SPERRE);
@@ -720,6 +800,7 @@ async function holeDaten({ erzwingen = false } = {}) {
     live.ts = Date.now();
     live.version = VERSION;
     merkeZeitraum(cache, live);
+    merkeAufladung(cache, live);
     schreibJSON(cacheName(), live);
     hebeLoginSperreAuf();
     merkeVerlauf(live, "inland");
@@ -770,7 +851,41 @@ function ergaenze(d) {
   if (d.roaming) d.ansichten.roaming = { ...d.roaming, ...werte(d.roaming) };
   d.zeitraeume = liesJSON(zeitraeumeName(), []);
   d.tarifCheck = tarifCheck(d.zeitraeume);
+  // Tagesbudget-Ampel: Budget für heute = (Rest + heute schon verbraucht) / Resttage
+  d.heuteGB = d.tageVerbrauch.length ? d.tageVerbrauch[d.tageVerbrauch.length - 1].gb : 0;
+  d.budgetHeute = !d.unbegrenzt && tage !== null ? (Math.max(0, d.left) + d.heuteGB) / Math.max(1, tage) : null;
+  d.ampel = d.budgetHeute ? (d.heuteGB >= d.budgetHeute ? "rot" : d.heuteGB >= 0.8 * d.budgetHeute ? "gelb" : "gruen") : null;
+  d.tageszeit = tageszeitVerbrauch(verlauf);
+  d.aufladungen = liesJSON(aufladungenName(), []);
   return d;
+}
+
+// Ampelfarben (gelb wie STATUS.warnung)
+const AMPEL = { gruen: "#34c759", gelb: "#fab219", rot: "#ff6b6b" };
+
+/** Verbrauch nach Tageszeit (Nacht, Vormittag, Nachmittag, Abend) aus dem Verlauf – erst ab 3 Tagen. */
+function tageszeitVerbrauch(verlauf) {
+  if (verlauf.length < 2 || verlauf[verlauf.length - 1].t - verlauf[0].t < 3 * 86400000) return null;
+  const gb = [0, 0, 0, 0];
+  for (let i = 1; i < verlauf.length; i++) {
+    const diff = verlauf[i - 1].left - verlauf[i].left, spanne = verlauf[i].t - verlauf[i - 1].t;
+    if (diff <= 0 || spanne > 3 * 3600 * 1000) continue; // lange Lücken lassen sich keiner Tageszeit zuordnen
+    gb[Math.floor(new Date(verlauf[i - 1].t + spanne / 2).getHours() / 6)] += diff;
+  }
+  const summe = gb.reduce((a, b) => a + b, 0);
+  if (summe < 0.2) return null;
+  const anteile = gb.map((x) => Math.round(x / summe * 100));
+  return { gb, anteile, top: anteile.indexOf(Math.max(...anteile)) };
+}
+
+const aufladungenName = () => `alditalk-aufladungen-${vertragIndex}.json`;
+/** Guthaben gestiegen? Dann als Aufladung merken. */
+function merkeAufladung(alt, neu) {
+  const a = alt && Number(alt.guthaben), n = Number(neu.guthaben);
+  if (!alt || !isFinite(a) || !isFinite(n) || n - a < 1) return;
+  const liste = liesJSON(aufladungenName(), []);
+  liste.push({ ts: Date.now(), betrag: Math.round((n - a) * 100) / 100, guthaben: n });
+  schreibJSON(aufladungenName(), liste.slice(-50));
 }
 
 /** Name einer Rufnummer: eigener Name aus den Einstellungen oder die letzten vier Ziffern. */
@@ -1296,6 +1411,10 @@ async function pruefeTipps(d, zustand, schicke, vertragTage, vertragZeitraum) {
     }
   }
   const heute = tagSchluessel(Date.now());
+  if (einstellungen.budgetWarnung && d.ampel === "rot" && d.heuteGB >= 0.1 && zustand.budget !== heute) {
+    zustand.budget = heute;
+    await schicke("budget", t("n_budget"), t("n_budget_text", fmtGB(d.heuteGB), fmtGB(d.budgetHeute)));
+  }
   if (!d.unbegrenzt && zustand.ungewoehnlich !== heute) {
     const u = ungewoehnlicherVerbrauch(liesJSON(verlaufName(d.ansicht), []));
     if (u) {
@@ -1400,7 +1519,8 @@ function baueWidget(d, familie) {
     w.url = skriptURL("menu");
     return w;
   }
-  if (familie === "small") klein(w, d, D);
+  if (familie === "small" && standbyWahl) standby(w, d, D);
+  else if (familie === "small") klein(w, d, D);
   else if (familie === "medium") mittel(w, d, D);
   else gross(w, d, D);
   return w;
@@ -1630,6 +1750,31 @@ function klein(w, d, D) {
   }
 }
 
+// --- StandBy: eine riesige Zahl, wenig drumherum ---------------
+function standby(w, d, D) {
+  w.setPadding(10, 12, 10, 12);
+  w.url = skriptURL("dashboard");
+  const k = w.addText((auslandTitel(d) || "ALDI TALK") + (d.stale ? " ⚠︎" : ""));
+  k.font = Font.semiboldRoundedSystemFont(11);
+  k.textColor = farbe(D.text2);
+  k.lineLimit = 1;
+  w.addSpacer();
+  const z = w.addText(d.unbegrenzt ? "∞" : fmtGB(d.left, true));
+  z.font = Font.heavyRoundedSystemFont(64);
+  z.textColor = d.status === "gut" ? farbe(D.text) : statusFarbe(d, D);
+  z.minimumScaleFactor = 0.5;
+  z.lineLimit = 1;
+  const u = w.addText(t(d.ansicht === "roaming" ? "gb_roaming_frei" : "standby_frei"));
+  u.font = Font.mediumRoundedSystemFont(13);
+  u.textColor = farbe(D.text2);
+  w.addSpacer();
+  const f = w.addText([d.resttage !== null ? t("noch_tage", d.resttage) : null, d.budgetHeute ? t("heute_von", fmtGB(d.heuteGB), fmtGB(d.budgetHeute)) : null].filter(Boolean).join(" · "));
+  f.font = Font.mediumRoundedSystemFont(11);
+  f.textColor = d.ampel ? farbe(AMPEL[d.ampel]) : farbe(D.text3);
+  f.lineLimit = 1;
+  f.minimumScaleFactor = 0.7;
+}
+
 // --- mittel ---------------------------------------------------
 function mittel(w, d, D) {
   w.setPadding(14, 14, 12, 14);
@@ -1646,7 +1791,8 @@ function mittel(w, d, D) {
   rechts.addSpacer(6);
   zeile(rechts, D, "creditcard.fill", t("guthaben"), isNaN(d.guthaben) ? "–" : fmtEuro(d.guthaben));
   zeile(rechts, D, "calendar", t("gueltig_bis"), fmtAblauf(d.expires));
-  if (d.tagesbudget !== null) zeile(rechts, D, "speedometer", t("pro_tag"), fmtGB(d.tagesbudget) + " GB");
+  if (d.budgetHeute) zeile(rechts, D, "speedometer", t("heute_label"), t("heute_von", fmtGB(d.heuteGB), fmtGB(d.budgetHeute)), farbe(AMPEL[d.ampel]));
+  else if (d.tagesbudget !== null) zeile(rechts, D, "speedometer", t("pro_tag"), fmtGB(d.tagesbudget) + " GB");
   else if (d.status !== "gut") zeile(rechts, D, "exclamationmark.triangle.fill", t("status"), statusText(d).replace("⚠︎ ", ""), statusFarbe(d, D));
   rechts.addSpacer(6);
 
@@ -1719,7 +1865,8 @@ function gross(w, d, D) {
   kachel(r1, D, t("laufzeit"), d.resttage === null ? "–" : t("tage", d.resttage), fmtAblauf(d.expires, false));
   kacheln.addSpacer(8);
   const r2 = kacheln.addStack();
-  kachel(r2, D, t("tagesbudget"), d.tagesbudget === null ? "–" : fmtGB(d.tagesbudget) + " GB");
+  kachel(r2, D, t("tagesbudget"), d.budgetHeute ? t("heute_von", fmtGB(d.heuteGB), fmtGB(d.budgetHeute)) : d.tagesbudget === null ? "–" : fmtGB(d.tagesbudget) + " GB",
+    d.budgetHeute ? t("heute_label").toLowerCase() : null, d.ampel ? farbe(AMPEL[d.ampel]) : null);
   r2.addSpacer(8);
   if (d.prognose && d.prognose.proTag > 0) {
     kachel(r2, D, t("prognose"), d.prognose.reicht ? t("reicht") : "⚠︎ " + fmtDatum(d.prognose.leerAm),
@@ -2116,6 +2263,14 @@ function dashboardHTML(d) {
     durchschnitt: d.prognose ? t("durchschnitt", fmtGB(d.prognose.proTag)) : "",
     guthabenText: isNaN(d.guthaben) ? "–" : fmtEuro(d.guthaben),
     fussText: t("aktualisiert", d.ts ? fmtRelativ(d.ts) : "–") + " · ALDI TALK Widget " + VERSION,
+    tageszeit: d.tageszeit ? { anteile: d.tageszeit.anteile, gb: d.tageszeit.gb.map((x) => fmtGB(x, true)), namen: t("tageszeit_namen"), spannen: t("tageszeit_spannen"),
+      satz: t("tageszeit_satz", t("tageszeit_namen")[d.tageszeit.top], t("tageszeit_spannen")[d.tageszeit.top], d.tageszeit.anteile[d.tageszeit.top]) } : null,
+    tageszeitTexte: { titel: t("tageszeit"), leer: t("tageszeit_sammelt") },
+    aufladungen: {
+      titel: t("aufladungen"), hinweis: t("aufladungen_hinweis"),
+      liste: (d.aufladungen || []).slice(-8).reverse().map((a) => ({ datum: fmtDatum(a.ts) + (L === "de" ? "" : " ") + new Date(a.ts).getFullYear(), betrag: "+" + fmtEuro(a.betrag) })),
+      summe: (() => { const j = new Date().getFullYear(); const s = (d.aufladungen || []).filter((a) => new Date(a.ts).getFullYear() === j).reduce((x, a) => x + a.betrag, 0); return s ? t("aufladungen_summe", j, fmtEuro(s)) : ""; })(),
+    },
     rueckblick: {
       titel: t("rueckblick"),
       text: d.tarifCheck ? d.tarifCheck.text : (d.zeitraeume || []).length ? "" : t("rueckblick_leer"),
@@ -2185,6 +2340,10 @@ summary { cursor: pointer; font-size: 13px; color: var(--text-2); margin-top: 8p
 .paket .z { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; } .paket .z span:last-child { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .paket .m { height: 5px; border-radius: 3px; background: var(--track); margin-top: 6px; overflow: hidden; } .paket .m div { height: 100%; background: var(--series); border-radius: 3px; }
 .paket.aus { color: var(--muted); } .paket.aus .m div { background: var(--baseline); }
+.tz { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-items: end; height: 120px; }
+.tz div { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; font-size: 11px; color: var(--muted); gap: 4px; font-variant-numeric: tabular-nums; }
+.tz i { display: block; width: 70%; border-radius: 6px 6px 2px 2px; background: var(--series); min-height: 3px; }
+.tz b { color: var(--text); font-size: 12px; }
 .gruppe { font-size: 12px; font-weight: 650; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin: 14px 0 2px; }
 .knoepfe { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
 .knoepfe a.haupt { grid-column: 1 / -1; }
@@ -2212,6 +2371,8 @@ summary { cursor: pointer; font-size: 13px; color: var(--text-2); margin-top: 8p
 <details><summary id="vTabelle"></summary><table id="tabelle"><thead><tr><th id="thTag"></th><th id="thVerbrauch"></th></tr></thead><tbody></tbody></table></details></section>
 <section class="karte" id="pakete"><h2 id="pTitel"></h2></section>
 <section class="karte" id="rueckblick"><h2 id="rTitel"></h2><div class="klein" id="rText"></div></section>
+<section class="karte" id="tageszeit"><h2 id="tzTitel"></h2><div class="klein" id="tzText" style="margin-bottom:10px"></div><div class="tz" id="tzBalken"></div></section>
+<section class="karte" id="aufladungen" hidden><h2 id="aTitel"></h2><div class="klein" id="aText"></div></section>
 <div class="knoepfe">
   <a class="haupt" href="aldi://book"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span id="kNach"></span></a>
   <a href="aldi://refresh"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg><span id="kAkt"></span></a>
@@ -2376,6 +2537,25 @@ setze("rTitel", rb.titel);
 setze("rText", rb.text);
 document.getElementById("rText").hidden = !rb.text;
 for (const z of rb.liste) paket(z.name, z.wert, z.anteil, z.aus, document.getElementById("rueckblick"));
+setze("tzTitel", d.tageszeitTexte.titel);
+if (d.tageszeit) {
+  setze("tzText", d.tageszeit.satz);
+  const max = Math.max.apply(null, d.tageszeit.anteile.concat([1]));
+  d.tageszeit.anteile.forEach(function (a, i) {
+    const s = document.createElement("div");
+    const v = document.createElement("b"); v.textContent = a + " %";
+    const bar = document.createElement("i"); bar.style.height = Math.round(a / max * 70) + "%"; if (i === d.tageszeit.top) bar.style.background = "var(--brand-2)";
+    const n = document.createElement("span"); n.textContent = d.tageszeit.namen[i]; n.title = d.tageszeit.spannen[i];
+    s.append(v, bar, n); document.getElementById("tzBalken").appendChild(s);
+  });
+} else { setze("tzText", d.tageszeitTexte.leer); document.getElementById("tzBalken").hidden = true; }
+const au = d.aufladungen;
+if (au.liste.length) {
+  document.getElementById("aufladungen").hidden = false;
+  setze("aTitel", au.titel);
+  setze("aText", [au.summe, au.hinweis].filter(Boolean).join(" · "));
+  for (const a of au.liste) paket(a.datum, a.betrag, null, false, document.getElementById("aufladungen"));
+}
 setze("fuss", d.fussText);
 </script></body></html>`;
 }
@@ -2438,13 +2618,15 @@ async function hauptmenue() {
 async function vorschauMenue(d) {
   const a = new Alert();
   a.title = t("vorschau");
-  const groessen = [[t("klein"), "small"], [t("mittel"), "medium"], [t("gross"), "large"], [t("sperr_rund"), "accessoryCircular"], [t("sperr_rechteck"), "accessoryRectangular"]];
+  const groessen = [["StandBy", "standby"], [t("klein"), "small"], [t("mittel"), "medium"], [t("gross"), "large"], [t("sperr_rund"), "accessoryCircular"], [t("sperr_rechteck"), "accessoryRectangular"]];
   for (const [n] of groessen) a.addAction(n);
   a.addCancelAction(t("zurueck"));
   const wahl = await a.presentSheet();
   if (wahl < 0) return;
-  const familie = groessen[wahl][1];
+  let familie = groessen[wahl][1];
+  if (familie === "standby") { standbyWahl = true; familie = "small"; }
   const w = baueWidget(d, familie);
+  standbyWahl = false;
   if (familie === "small") await w.presentSmall();
   else if (familie === "medium") await w.presentMedium();
   else if (familie === "large") await w.presentLarge();
@@ -2468,6 +2650,7 @@ async function landMenue() {
       [t("l_intervall", ivName), "intervall"],
       [t("l_jetzt"), "jetzt"],
       [t("l_verlauf"), "verlauf"],
+      [t("m_reise"), "reise"],
     ];
     for (const [tx] of punkte) a.addAction(tx);
     a.addCancelAction(t("zurueck"));
@@ -2494,6 +2677,8 @@ async function landMenue() {
       await standortBereit;
       const neu = standortInfo();
       await hinweis(t("l_ergebnis"), `${neu.flagge} ${neu.titel}${neu.zone ? " – " + neu.zone : ""}\n${neu.details}`);
+    } else if (was === "reise") {
+      await reiseVorschau();
     } else if (was === "verlauf") {
       const verlauf = liesJSON(LAENDERVERLAUF, []).slice().reverse();
       await hinweis(t("l_verlauf"), verlauf.length
@@ -2502,6 +2687,143 @@ async function landMenue() {
     }
     speichereEinstellungen();
   }
+}
+
+/** Reise-Vorschau: Land wählen und sehen, was dort gilt (mit dem aktuellen Roaming-Volumen). */
+async function reiseVorschau() {
+  const codes = [...EU_LAENDER.filter((c) => LAENDER[c] && c !== HEIMATLAND).sort((x, y) => landName(x).localeCompare(landName(y))),
+    ...ANDERE_LAENDER.slice().sort((x, y) => landName(x).localeCompare(landName(y)))];
+  const w = await auswahl(t("m_reise"), codes.map((c) => `${flagge(c)} ${landName(c)}${EU_LAENDER.includes(c) ? " · " + t("l_eu") : " · " + t("l_andere")}`));
+  if (w < 0) return;
+  const land = codes[w];
+  const cache = liesJSON(cacheName(), null);
+  let text;
+  if (land === HEIMATLAND) text = t("reise_inland");
+  else if (zone(land) === "eu") {
+    const r = cache && cache.roaming;
+    text = t("reise_eu", r && !r.geschaetzt ? t("reise_eu_wert", fmtGB(r.left), fmtGB(r.total)) : r ? t("reise_eu_geschaetzt", fmtGB(r.total, true)) : "–");
+  } else text = t("reise_welt");
+  await hinweis(t("reise_titel", flagge(land), landName(land)), text);
+}
+
+// ============================================================
+//  Home Assistant: Werte als Sensoren schicken
+// ============================================================
+const K_HA_URL = "alditalk_ha_url", K_HA_TOKEN = "alditalk_ha_token";
+const haZugang = () => (Keychain.contains(K_HA_URL) && Keychain.contains(K_HA_TOKEN) ? { url: Keychain.get(K_HA_URL), token: Keychain.get(K_HA_TOKEN) } : null);
+const haHost = (u) => String(u || "").replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+
+/** Zugänge zu Home Assistant, die andere Widgets schon im Schlüsselbund haben. */
+function haVorhandene() {
+  const liste = [];
+  const nimm = (url, token) => { if (url && token && !liste.some((x) => x.url === url)) liste.push({ url: String(url).replace(/\/+$/, ""), token }); };
+  try { if (Keychain.contains("briefankuendigung_ha_url")) nimm(Keychain.get("briefankuendigung_ha_url"), Keychain.get("briefankuendigung_ha_token")); } catch (e) { /* egal */ }
+  try { if (Keychain.contains("woist_ha_url")) nimm(Keychain.get("woist_ha_url"), Keychain.get("woist_ha_token")); } catch (e) { /* egal */ }
+  try { if (Keychain.contains("woist_instanzen")) for (const i of JSON.parse(Keychain.get("woist_instanzen"))) nimm(i.url, i.token); } catch (e) { /* egal */ }
+  return liste;
+}
+
+async function haAnfrage(z, pfadTeil, body) {
+  const r = new Request(z.url.replace(/\/+$/, "") + pfadTeil);
+  r.timeoutInterval = 8;
+  r.method = body ? "POST" : "GET";
+  r.headers = { Authorization: "Bearer " + z.token, "Content-Type": "application/json" };
+  if (body) r.body = JSON.stringify(body);
+  const text = await r.loadString();
+  const st = (r.response && r.response.statusCode) || 0;
+  if (st === 401) throw new Error(t("ha_admin"));
+  if (st >= 400) throw new Error("HTTP " + st);
+  return text;
+}
+
+/** Nach einem frischen Abruf die Sensoren setzen (je Rufnummer mit Endung _2, _3 …). Wirft nie. */
+async function haSenden(d) {
+  if (!einstellungen.haSync || !d || d.error || d.stale) return;
+  const z = haZugang();
+  if (!z) return;
+  const merk = liesJSON("alditalk-ha-" + vertragIndex + ".json", {});
+  if (merk.ts && merk.ts >= d.ts) return; // diesen Stand schon gesendet
+  const e = vertragIndex ? "_" + (vertragIndex + 1) : "";
+  const wer = d.vertraege && d.vertraege.length > 1 && d.vertraege[d.vertragIndex] ? " " + vertragName(d.vertraege[d.vertragIndex].label) : "";
+  const lage = d.roamingLage || {};
+  const sensoren = [
+    ["sensor.aldi_talk_datenvolumen" + e, d.unbegrenzt ? "unbegrenzt" : d.left.toFixed(2), d.unbegrenzt ? { friendly_name: "ALDI TALK Datenvolumen" + wer, icon: "mdi:signal-cellular-3" }
+      : { friendly_name: "ALDI TALK Datenvolumen" + wer, unit_of_measurement: "GB", device_class: "data_size", state_class: "measurement", icon: "mdi:signal-cellular-3",
+        gesamt: Math.round(d.total * 100) / 100, prozent: Math.round(d.pct * 100), roaming: d.ansicht === "roaming", land: lage.land || null, status: d.status }],
+    ["sensor.aldi_talk_guthaben" + e, isNaN(d.guthaben) ? "unknown" : d.guthaben.toFixed(2), { friendly_name: "ALDI TALK Guthaben" + wer, unit_of_measurement: "€", device_class: "monetary", icon: "mdi:wallet" }],
+    ["sensor.aldi_talk_laufzeit" + e, d.resttage === null ? "unknown" : String(d.resttage), { friendly_name: "ALDI TALK Laufzeit" + wer, unit_of_measurement: "d", icon: "mdi:calendar-clock",
+      ablauf: (parseDatum(d.vertragsEnde || d.expires) || { toISOString: () => null }).toISOString() }],
+    ["sensor.aldi_talk_heute" + e, d.unbegrenzt ? "0" : (d.heuteGB || 0).toFixed(2), { friendly_name: "ALDI TALK heute verbraucht" + wer, unit_of_measurement: "GB", device_class: "data_size",
+      state_class: "measurement", icon: "mdi:speedometer", tagesbudget: d.budgetHeute ? Math.round(d.budgetHeute * 100) / 100 : null, ampel: d.ampel }],
+  ];
+  try {
+    for (const [id, state, attributes] of sensoren) await haAnfrage(z, "/api/states/" + id, { state, attributes });
+    schreibJSON("alditalk-ha-" + vertragIndex + ".json", { ts: d.ts, fehler: "" });
+  } catch (x) {
+    schreibJSON("alditalk-ha-" + vertragIndex + ".json", { ts: merk.ts || 0, fehler: String(x.message || x) });
+  }
+}
+
+async function haMenue(d) {
+  const a = new Alert();
+  a.title = t("m_ha");
+  const merk = liesJSON("alditalk-ha-" + vertragIndex + ".json", {});
+  a.message = t("ha_text") + (merk.fehler ? "\n\n⚠︎ " + merk.fehler : merk.ts ? "\n\n" + t("ha_letzter", fmtRelativ(merk.ts)) : "");
+  const vorhanden = haVorhandene();
+  const aktionen = vorhanden.map((z) => [t("ha_vorhanden", haHost(z.url)), z]);
+  aktionen.push([t("ha_eingeben"), "eingeben"]);
+  if (einstellungen.haSync) aktionen.push([t("ha_abschalten"), "aus"]);
+  for (const [tx] of aktionen) a.addAction(tx);
+  a.addCancelAction(t("zurueck"));
+  const w = await a.presentSheet();
+  if (w < 0) return;
+  let z = aktionen[w][1];
+  if (z === "aus") { einstellungen.haSync = false; return; }
+  if (z === "eingeben") {
+    const f = new Alert();
+    f.title = t("m_ha");
+    f.addTextField(t("ha_adresse"), (haZugang() || {}).url || "https://");
+    f.addSecureTextField(t("ha_token"), "");
+    f.addAction(t("speichern"));
+    f.addCancelAction(t("abbrechen"));
+    if ((await f.presentAlert()) !== 0) return;
+    z = { url: f.textFieldValue(0).trim().replace(/\/+$/, ""), token: f.textFieldValue(1).trim() };
+  }
+  try {
+    await haAnfrage(z, "/api/");
+    Keychain.set(K_HA_URL, z.url);
+    Keychain.set(K_HA_TOKEN, z.token);
+    einstellungen.haSync = true;
+    speichereEinstellungen();
+    loesche("alditalk-ha-" + vertragIndex + ".json");
+    await haSenden(d);
+    await hinweis(t("m_ha"), t("ha_ok"));
+  } catch (x) {
+    await hinweis(t("m_ha"), t("ha_fehler", String(x.message || x)));
+  }
+}
+
+/** iCloud-Abgleich ein-/ausschalten: geteilte Dateien an den neuen Ort kopieren. */
+async function icloudMenue() {
+  const a = new Alert();
+  a.title = t("m_icloud", ICLOUD);
+  a.message = t("icloud_text");
+  a.addAction(ICLOUD ? t("icloud_aus") : t("icloud_an"));
+  a.addCancelAction(t("abbrechen"));
+  if ((await a.presentAlert()) !== 0) return;
+  const lokal = FileManager.local(), w = wolke();
+  const vonF = ICLOUD ? w : lokal, vonO = ICLOUD ? ORDNER_WOLKE : ORDNER;
+  const nachF = ICLOUD ? lokal : w, nachO = ICLOUD ? ORDNER : ORDNER_WOLKE;
+  for (const n of vonF.listContents(vonO).filter((x) => SYNC_DATEIEN.test(x))) {
+    const quelle = vonF.joinPath(vonO, n), ziel = nachF.joinPath(nachO, n);
+    if (ICLOUD && !vonF.isFileDownloaded(quelle)) await vonF.downloadFileFromiCloud(quelle);
+    // vorhandene Datei am Ziel (z. B. vom iPad) gewinnt, wenn sie neuer ist
+    if (nachF.fileExists(ziel) && nachF.modificationDate(ziel) > vonF.modificationDate(quelle)) continue;
+    nachF.writeString(ziel, vonF.readString(quelle));
+  }
+  const merker = lokal.joinPath(ORDNER, ICLOUD_MERKER);
+  if (ICLOUD) lokal.remove(merker); else lokal.writeString(merker, "1");
+  await hinweis(t("m_icloud", !ICLOUD), t("icloud_fertig"));
 }
 
 async function einstellungsMenue(d) {
@@ -2518,6 +2840,9 @@ async function einstellungsMenue(d) {
       [t("e_guthaben_warnung", fmtEuro(einstellungen.warnGuthaben)), "warnGuthaben"],
       [t("e_mitteilungen", einstellungen.mitteilungen), "mitteilungen"],
       [t("e_tipps", einstellungen.tipps), "tipps"],
+      [t("e_budget", einstellungen.budgetWarnung), "budget"],
+      [t("m_ha") + ": " + (einstellungen.haSync && haZugang() ? t("ha_an", haHost(haZugang().url)) : t("ha_aus")), "ha"],
+      [t("m_icloud", ICLOUD), "icloud"],
       [t("e_erinnerung", einstellungen.erinnerung), "erinnerung"],
       [t("e_intervall", einstellungen.cacheMin), "cacheMin"],
       [t("m_land"), "land"],
@@ -2536,7 +2861,8 @@ async function einstellungsMenue(d) {
     if (wahl === punkte.length) {
       if (await bestaetige(t("reset_frage"), t("reset_text"))) {
         vergissZugangsdaten();
-        for (const n of fm.listContents(ORDNER).filter((n) => n.startsWith("alditalk-"))) loesche(n);
+        for (const n of fm.listContents(ORDNER).filter((n) => n.startsWith("alditalk-") && n !== ICLOUD_MERKER)) loesche(n);
+        if (ICLOUD) for (const n of wolke().listContents(ORDNER_WOLKE).filter((n) => n.startsWith("alditalk-"))) loesche(n);
         Object.assign(einstellungen, STANDARD);
         standort = null;
         roamingWahl = einstellungen.roaming;
@@ -2561,6 +2887,14 @@ async function einstellungsMenue(d) {
       if (v !== null) einstellungen.warnGuthaben = Math.max(0, v);
     } else if (was === "mitteilungen") {
       einstellungen.mitteilungen = !einstellungen.mitteilungen;
+    } else if (was === "budget") {
+      einstellungen.budgetWarnung = !einstellungen.budgetWarnung;
+    } else if (was === "ha") {
+      await haMenue(d);
+    } else if (was === "icloud") {
+      speichereEinstellungen();
+      await icloudMenue();
+      return;
     } else if (was === "tipps") {
       einstellungen.tipps = !einstellungen.tipps;
     } else if (was === "erinnerung") {
@@ -3019,7 +3353,7 @@ if (param === "update" || (args.queryParameters && args.queryParameters.update))
   Script.setShortcutOutput(satz);
   if (config.runsWithSiri) Speech.speak(satz);
 } else if (IM_WIDGET && alleVertraege && !(config.widgetFamily || "").startsWith("accessory")) {
-  const liste = await holeAlle(async (d) => { await pruefeWarnungen(d); await pflegeErinnerung(d); });
+  const liste = await holeAlle(async (d) => { await pruefeWarnungen(d); await pflegeErinnerung(d); await haSenden(d); });
   Script.setWidget(alleWidget(liste, config.widgetFamily || "small"));
   await updateImHintergrund();
 } else if (IM_WIDGET) {
@@ -3027,6 +3361,7 @@ if (param === "update" || (args.queryParameters && args.queryParameters.update))
   const daten = await holeDaten();
   await pruefeWarnungen(daten);
   await pflegeErinnerung(daten);
+  await haSenden(daten);
   Script.setWidget(baueWidget(daten, familie));
   await updateImHintergrund();
 } else if (!(await updateAnbieten())) {

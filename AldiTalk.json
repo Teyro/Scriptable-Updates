@@ -1,15 +1,15 @@
 {
   "name": "AldiTalk",
-  "version": "3.3",
-  "datum": "2026-10-22",
+  "version": "3.4",
+  "datum": "2026-10-23",
   "neu": [
-    "Siri: „Hey Siri, ALDI TALK“",
-    "Tipps: Volumen übrig, ungewöhnlicher Verbrauch, Tarif verlängert",
-    "Rückblick mit Tarif-Check in der Übersicht",
-    "Erinnerung an die Verlängerung (Einstellungen)",
-    "Alle Rufnummern in einem Widget (Parameter „alle“)"
+    "Tagesbudget-Ampel mit Mitteilung",
+    "StandBy-Widget (Parameter „standby“)",
+    "Aufladungen und Verbrauch nach Tageszeit in der Übersicht",
+    "Reise-Vorschau (Land & Roaming)",
+    "Home-Assistant-Sensoren und iPhone/iPad-Abgleich (Einstellungen)"
   ],
-  "pruef": "31d7fa510cd007cced96429cce2f129c16c58a3a5f097a16553c10af38b05b0d",
+  "pruef": "3541c0795d9fe2962747bc846b40e90ba394ad1fcf368dc662fb8935fc018630",
   "datei": "AldiTalk.js",
   "verschluesselt": false
 }
