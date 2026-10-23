@@ -1,16 +1,13 @@
 {
   "name": "IServ-Abwesenheiten",
-  "version": "0.11",
+  "version": "0.12",
   "datum": "2026-10-23",
   "neu": [
-    "„seit Mo“ und „ab morgen da“",
-    "Einzelne Stunden getrennt",
-    "Sichtschutz: nur Vorname + Initiale (Einstellungen)",
-    "Ruhezeiten und Pause für Mitteilungen",
-    "Siri nennt nur Zahlen"
+    "Tafel-Ansicht: nur die Zahl je Klasse (Parameter „tafel, 5a“)",
+    "Eigene Klassenlisten (Einstellungen → Klassen für die Tafel)"
   ],
-  "pruef": "57bde5324aa7142f5efa3788c872e6decce8a5dba5f8a984305e8daa64d9adff",
+  "pruef": "a6379e90ae19be4916da72a7ad40ab5b445660f1793d7b86358d7797c882999d",
   "datei": "IServ-Abwesenheiten.js.enc",
   "verschluesselt": true,
-  "nonce": "1ecea3d541ef09f956fd44bc"
+  "nonce": "e184dce6faaea41e46bbd24b"
 }
