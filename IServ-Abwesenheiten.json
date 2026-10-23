@@ -1,12 +1,16 @@
 {
   "name": "IServ-Abwesenheiten",
-  "version": "0.10",
-  "datum": "2026-10-22",
+  "version": "0.11",
+  "datum": "2026-10-23",
   "neu": [
-    "Neue Optik: farbige Streifen, Zusammenfassung, mehr Platz für Namen"
+    "„seit Mo“ und „ab morgen da“",
+    "Einzelne Stunden getrennt",
+    "Sichtschutz: nur Vorname + Initiale (Einstellungen)",
+    "Ruhezeiten und Pause für Mitteilungen",
+    "Siri nennt nur Zahlen"
   ],
-  "pruef": "1625c73ced4cde6d083863549984884979a6547a4e92a6b10c79de76e31b70d1",
+  "pruef": "57bde5324aa7142f5efa3788c872e6decce8a5dba5f8a984305e8daa64d9adff",
   "datei": "IServ-Abwesenheiten.js.enc",
   "verschluesselt": true,
-  "nonce": "d1ee7c82f80b5e6031d8b4f6"
+  "nonce": "1ecea3d541ef09f956fd44bc"
 }
