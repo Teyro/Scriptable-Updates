@@ -1,13 +1,12 @@
 {
   "name": "IServ-Abwesenheiten",
-  "version": "0.12",
-  "datum": "2026-10-23",
+  "version": "0.13",
+  "datum": "2026-10-24",
   "neu": [
-    "Tafel-Ansicht: nur die Zahl je Klasse (Parameter „tafel, 5a“)",
-    "Eigene Klassenlisten (Einstellungen → Klassen für die Tafel)"
+    "Zahl je Klasse an die DammLauncher-Boards (Einstellungen → DammLauncher-Boards) – nur Zahlen, keine Namen"
   ],
-  "pruef": "a6379e90ae19be4916da72a7ad40ab5b445660f1793d7b86358d7797c882999d",
+  "pruef": "263a1b7b56f79902ea2ffe98a7c1f4c02cd9125538c76a9adfb7a4d5da03ddab",
   "datei": "IServ-Abwesenheiten.js.enc",
   "verschluesselt": true,
-  "nonce": "e184dce6faaea41e46bbd24b"
+  "nonce": "fd850a3d8fc64a16ccf109b5"
 }
