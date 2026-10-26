@@ -1,14 +1,16 @@
 {
   "name": "Briefankuendigung",
-  "version": "2.0",
-  "datum": "2026-10-24",
+  "version": "2.1",
+  "datum": "2026-10-26",
   "neu": [
-    "Neue Optik: Heute/Unterwegs, Etiketten, Paket-Verlauf",
-    "Angekommen gilt auf allen Geräten, Jetzt nachsehen (Integration 1.3)",
-    "Erinnern, Notiz, Teilen, Sendungsverfolgung, Archiv-Statistik"
+    "📦 Pakete von DHL, Hermes, DPD und Amazon (Integration ab 1.4)",
+    "Voraussichtliche Zustellung mit Zeitfenster, „zur Abholung bereit“",
+    "Mehrere Amazon-Konten: an jedem Paket steht, für wen es ist",
+    "Verfolgen öffnet die Seite des jeweiligen Dienstes",
+    "＋ Sendung per Nummer hinzufügen (Menü und Pakete-Liste)"
   ],
-  "pruef": "90c55323474582dcf0a75f4b34f0a58c6edce6cccb40443dcd467f87adb996e4",
+  "pruef": "8074edecdf339b613c7880f3bad562f81faab52cf95dd333a60a27844bea7b0e",
   "datei": "Briefankuendigung.js.enc",
   "verschluesselt": true,
-  "nonce": "5116b92dc19601cbde00489f"
+  "nonce": "ee76210c69169cd4992e54b0"
 }
