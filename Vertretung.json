@@ -1,0 +1,12 @@
+{
+  "name": "Vertretung",
+  "version": "1.0",
+  "datum": "2026-11-06",
+  "neu": [
+    "Neu: dein Vertretungsplan als Widget – Stunde, Klasse, Haus, Pausenaufsicht"
+  ],
+  "pruef": "9cee8cfc2f4df21a601b3228e02d6cbf1feed3be9615a7effa9307e2a1242d59",
+  "datei": "Vertretung.js.enc",
+  "verschluesselt": true,
+  "nonce": "acdc676567645dcfc70bba50"
+}
