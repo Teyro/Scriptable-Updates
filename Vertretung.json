@@ -1,12 +1,12 @@
 {
   "name": "Vertretung",
-  "version": "1.0",
+  "version": "1.1",
   "datum": "2026-11-06",
   "neu": [
-    "Neu: dein Vertretungsplan als Widget – Stunde, Klasse, Haus, Pausenaufsicht"
+    "Immer die zuletzt bearbeitete Datei als Grundlage"
   ],
-  "pruef": "9cee8cfc2f4df21a601b3228e02d6cbf1feed3be9615a7effa9307e2a1242d59",
+  "pruef": "adb58344a507f29a1a6faf80bf19e9ab40f074df3f9170e1689e34da748b32ee",
   "datei": "Vertretung.js.enc",
   "verschluesselt": true,
-  "nonce": "acdc676567645dcfc70bba50"
+  "nonce": "4b38ed48d29cd8080cdf2ccf"
 }
