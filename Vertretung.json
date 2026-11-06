@@ -1,12 +1,13 @@
 {
   "name": "Vertretung",
-  "version": "1.1",
+  "version": "1.2",
   "datum": "2026-11-06",
   "neu": [
-    "Immer die zuletzt bearbeitete Datei als Grundlage"
+    "Neues Tages-Dashboard: Wetter, Pausenaufsicht als Kacheln, wer fehlt",
+    "Kollegiums-Liste: Kürzel → Name (Einstellungen)"
   ],
-  "pruef": "adb58344a507f29a1a6faf80bf19e9ab40f074df3f9170e1689e34da748b32ee",
+  "pruef": "78162f2c4c4b9a214eff12ba0c254991f65f5d70e3097ba93b236eb26eaeea2f",
   "datei": "Vertretung.js.enc",
   "verschluesselt": true,
-  "nonce": "4b38ed48d29cd8080cdf2ccf"
+  "nonce": "ff446816fb3c0ecb7e421181"
 }
