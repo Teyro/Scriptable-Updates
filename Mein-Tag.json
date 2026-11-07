@@ -1,13 +1,14 @@
 {
   "name": "Mein-Tag",
-  "version": "3.0",
+  "version": "3.1",
   "datum": "2026-11-07",
   "neu": [
-    "Neu: Mein Tag – Vertretung, Abwesenheiten, Störungen, Aufgaben und Guten Morgen in einem Skript",
-    "Tages-Dashboard als Widget (Parameter leer oder „alles“)"
+    "Neues Tages-Dashboard: Mensa, wer im Kollegium fehlt (Kürzel fett + Name), Kacheln, Bemerkungen",
+    "Plan: aus den letzten drei Dateien der passende Tag (Wochenende: Freitag)",
+    "Lädt Mo–Fr um 7:00, 7:10, 7:20, 7:30 und 7:45 neu"
   ],
-  "pruef": "24330d45970bb6d701e016828d6beccb6676578c5e6e0e3dbd700494b4a50ade",
+  "pruef": "912d072ccba1eddbdebf00a96704d9b2eb0ec12b61875c330fc6b34ef39a70ce",
   "datei": "Mein-Tag.js.enc",
   "verschluesselt": true,
-  "nonce": "eac1f92c281ccb44b7f00cfe"
+  "nonce": "77e3344c8a4e19503e16ac9a"
 }

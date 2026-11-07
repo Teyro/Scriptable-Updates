@@ -1,14 +1,14 @@
 {
   "name": "Mein-Tag",
-  "version": "3.0",
+  "version": "3.1",
   "datum": "2026-11-07",
   "neu": [
-    "Dieses Skript ist jetzt Teil von „Mein Tag“ – Widgets laufen weiter wie bisher",
-    "Widget-Parameter „alles“ zeigt das neue Tages-Dashboard",
-    "Guten Morgen liest jetzt Post/Pakete und die Vertretung vor"
+    "Neues Tages-Dashboard: Mensa, wer im Kollegium fehlt (Kürzel fett + Name), Kacheln, Bemerkungen",
+    "Plan: aus den letzten drei Dateien der passende Tag (Wochenende: Freitag)",
+    "Lädt Mo–Fr um 7:00, 7:10, 7:20, 7:30 und 7:45 neu"
   ],
-  "pruef": "38984589d4ee347b621888b051e655b4292f179bf2a742d072f9758b6ff82823",
+  "pruef": "af15ccce7769f7649f88241874389e90578363082d971c6ec55d539d9fe692f3",
   "datei": "Vertretung.js.enc",
   "verschluesselt": true,
-  "nonce": "8293cfe5a33a138d1083e04b"
+  "nonce": "1cf28b682024d10a4624280d"
 }

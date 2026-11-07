@@ -1,14 +1,14 @@
 {
   "name": "Mein-Tag",
-  "version": "3.0",
+  "version": "3.1",
   "datum": "2026-11-07",
   "neu": [
-    "Dieses Skript ist jetzt Teil von „Mein Tag“ – Widgets laufen weiter wie bisher",
-    "Widget-Parameter „alles“ zeigt das neue Tages-Dashboard",
-    "Guten Morgen liest jetzt Post/Pakete und die Vertretung vor"
+    "Neues Tages-Dashboard: Mensa, wer im Kollegium fehlt (Kürzel fett + Name), Kacheln, Bemerkungen",
+    "Plan: aus den letzten drei Dateien der passende Tag (Wochenende: Freitag)",
+    "Lädt Mo–Fr um 7:00, 7:10, 7:20, 7:30 und 7:45 neu"
   ],
-  "pruef": "6bc5226c22c855c772a4653f32972fee0bd07b6e8186832442fad7adffa62802",
+  "pruef": "02fba262854b6cf910f37f2bfabfd290c53e11fd2fcc951e6f158d5bda31b68f",
   "datei": "IServ-Stoerungen.js.enc",
   "verschluesselt": true,
-  "nonce": "2f902390e3e0756eecfbd234"
+  "nonce": "be3f68fd3544254f7c574036"
 }

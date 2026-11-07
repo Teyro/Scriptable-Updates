@@ -1,14 +1,14 @@
 {
   "name": "Mein-Tag",
-  "version": "3.0",
+  "version": "3.1",
   "datum": "2026-11-07",
   "neu": [
-    "Dieses Skript ist jetzt Teil von „Mein Tag“ – Widgets laufen weiter wie bisher",
-    "Widget-Parameter „alles“ zeigt das neue Tages-Dashboard",
-    "Guten Morgen liest jetzt Post/Pakete und die Vertretung vor"
+    "Neues Tages-Dashboard: Mensa, wer im Kollegium fehlt (Kürzel fett + Name), Kacheln, Bemerkungen",
+    "Plan: aus den letzten drei Dateien der passende Tag (Wochenende: Freitag)",
+    "Lädt Mo–Fr um 7:00, 7:10, 7:20, 7:30 und 7:45 neu"
   ],
-  "pruef": "6f1c30fadddf5e235f4bf3aeec25e0f4bd07fc938069380503c75f63ab2d9e61",
+  "pruef": "21fd9ae649349f9ae7b68259ce82282be6f74a6a1a18c40cc8dbb61f7a359308",
   "datei": "Edupool-Aufgaben.js.enc",
   "verschluesselt": true,
-  "nonce": "5d133a3ed78c772fe28aacd7"
+  "nonce": "4be97210af00d15727b28a29"
 }

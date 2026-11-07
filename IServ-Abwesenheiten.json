@@ -1,14 +1,14 @@
 {
   "name": "Mein-Tag",
-  "version": "3.0",
+  "version": "3.1",
   "datum": "2026-11-07",
   "neu": [
-    "Dieses Skript ist jetzt Teil von „Mein Tag“ – Widgets laufen weiter wie bisher",
-    "Widget-Parameter „alles“ zeigt das neue Tages-Dashboard",
-    "Guten Morgen liest jetzt Post/Pakete und die Vertretung vor"
+    "Neues Tages-Dashboard: Mensa, wer im Kollegium fehlt (Kürzel fett + Name), Kacheln, Bemerkungen",
+    "Plan: aus den letzten drei Dateien der passende Tag (Wochenende: Freitag)",
+    "Lädt Mo–Fr um 7:00, 7:10, 7:20, 7:30 und 7:45 neu"
   ],
-  "pruef": "e438187a59a88f98c73874b93bbc4d32f81f00c3ccafce7b75455fda85a7289f",
+  "pruef": "247e7479111c5c48996a726bffa5768b3169f79bb990c0985a385df7be61da88",
   "datei": "IServ-Abwesenheiten.js.enc",
   "verschluesselt": true,
-  "nonce": "711fbd40e52a824567b71a8f"
+  "nonce": "c337f34d1aee2f2a99cb2cfe"
 }
