@@ -1,0 +1,13 @@
+{
+  "name": "Mein-Tag",
+  "version": "3.0",
+  "datum": "2026-11-07",
+  "neu": [
+    "Neu: Mein Tag – Vertretung, Abwesenheiten, Störungen, Aufgaben und Guten Morgen in einem Skript",
+    "Tages-Dashboard als Widget (Parameter leer oder „alles“)"
+  ],
+  "pruef": "24330d45970bb6d701e016828d6beccb6676578c5e6e0e3dbd700494b4a50ade",
+  "datei": "Mein-Tag.js.enc",
+  "verschluesselt": true,
+  "nonce": "eac1f92c281ccb44b7f00cfe"
+}

@@ -1,12 +1,14 @@
 {
-  "name": "Guten-Morgen",
-  "version": "1.0",
-  "datum": "2026-10-24",
+  "name": "Mein-Tag",
+  "version": "3.0",
+  "datum": "2026-11-07",
   "neu": [
-    "Erste Version: Morgen-Briefing, Gute Nacht, automatische Weckzeit"
+    "Dieses Skript ist jetzt Teil von „Mein Tag“ – Widgets laufen weiter wie bisher",
+    "Widget-Parameter „alles“ zeigt das neue Tages-Dashboard",
+    "Guten Morgen liest jetzt Post/Pakete und die Vertretung vor"
   ],
-  "pruef": "12e317a7569daf66dfdea6e488fc0f20069478f564e54d8d8105be23c27e55ef",
+  "pruef": "017848630b542824bc42b1e3fdd1986a3a5d07047d5865a59ec84fed6111d6a4",
   "datei": "Guten-Morgen.js.enc",
   "verschluesselt": true,
-  "nonce": "182ffe1f1ea0d5297a4b52e2"
+  "nonce": "e013d35f9ad327d9f68bb094"
 }

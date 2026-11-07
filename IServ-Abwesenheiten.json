@@ -1,12 +1,14 @@
 {
-  "name": "IServ-Abwesenheiten",
-  "version": "0.13",
-  "datum": "2026-10-24",
+  "name": "Mein-Tag",
+  "version": "3.0",
+  "datum": "2026-11-07",
   "neu": [
-    "Zahl je Klasse an die DammLauncher-Boards (Einstellungen → DammLauncher-Boards) – nur Zahlen, keine Namen"
+    "Dieses Skript ist jetzt Teil von „Mein Tag“ – Widgets laufen weiter wie bisher",
+    "Widget-Parameter „alles“ zeigt das neue Tages-Dashboard",
+    "Guten Morgen liest jetzt Post/Pakete und die Vertretung vor"
   ],
-  "pruef": "263a1b7b56f79902ea2ffe98a7c1f4c02cd9125538c76a9adfb7a4d5da03ddab",
+  "pruef": "e438187a59a88f98c73874b93bbc4d32f81f00c3ccafce7b75455fda85a7289f",
   "datei": "IServ-Abwesenheiten.js.enc",
   "verschluesselt": true,
-  "nonce": "fd850a3d8fc64a16ccf109b5"
+  "nonce": "711fbd40e52a824567b71a8f"
 }

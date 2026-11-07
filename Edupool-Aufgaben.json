@@ -1,13 +1,14 @@
 {
-  "name": "Edupool-Aufgaben",
-  "version": "2.1.1",
-  "datum": "2026-10-21",
+  "name": "Mein-Tag",
+  "version": "3.0",
+  "datum": "2026-11-07",
   "neu": [
-    "Updates funktionieren jetzt",
-    "Links aus dem Widget klappen auch, wenn das Skript umbenannt wurde"
+    "Dieses Skript ist jetzt Teil von „Mein Tag“ – Widgets laufen weiter wie bisher",
+    "Widget-Parameter „alles“ zeigt das neue Tages-Dashboard",
+    "Guten Morgen liest jetzt Post/Pakete und die Vertretung vor"
   ],
-  "pruef": "7878ff6d292fd948a18113d8f480a58291ba0473986ebf5cef188b213f2c7f70",
+  "pruef": "6f1c30fadddf5e235f4bf3aeec25e0f4bd07fc938069380503c75f63ab2d9e61",
   "datei": "Edupool-Aufgaben.js.enc",
   "verschluesselt": true,
-  "nonce": "2ebe81f2618cc07e01751e70"
+  "nonce": "5d133a3ed78c772fe28aacd7"
 }

@@ -1,13 +1,14 @@
 {
-  "name": "IServ-Störungen",
-  "version": "0.4",
-  "datum": "2026-10-22",
+  "name": "Mein-Tag",
+  "version": "3.0",
+  "datum": "2026-11-07",
   "neu": [
-    "Neue Optik: farbige Streifen, Zusammenfassung",
-    "Kleines Widget zeigt drei Meldungen"
+    "Dieses Skript ist jetzt Teil von „Mein Tag“ – Widgets laufen weiter wie bisher",
+    "Widget-Parameter „alles“ zeigt das neue Tages-Dashboard",
+    "Guten Morgen liest jetzt Post/Pakete und die Vertretung vor"
   ],
-  "pruef": "8465d8fb3f549a35cc1ccd50e93108fd16f5639c31cb9d7d039ea5d6434c4a79",
+  "pruef": "6bc5226c22c855c772a4653f32972fee0bd07b6e8186832442fad7adffa62802",
   "datei": "IServ-Stoerungen.js.enc",
   "verschluesselt": true,
-  "nonce": "a75661562cc8d8a8a0055ff2"
+  "nonce": "2f902390e3e0756eecfbd234"
 }

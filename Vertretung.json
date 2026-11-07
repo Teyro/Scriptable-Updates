@@ -1,13 +1,14 @@
 {
-  "name": "Vertretung",
-  "version": "1.2",
-  "datum": "2026-11-06",
+  "name": "Mein-Tag",
+  "version": "3.0",
+  "datum": "2026-11-07",
   "neu": [
-    "Neues Tages-Dashboard: Wetter, Pausenaufsicht als Kacheln, wer fehlt",
-    "Kollegiums-Liste: Kürzel → Name (Einstellungen)"
+    "Dieses Skript ist jetzt Teil von „Mein Tag“ – Widgets laufen weiter wie bisher",
+    "Widget-Parameter „alles“ zeigt das neue Tages-Dashboard",
+    "Guten Morgen liest jetzt Post/Pakete und die Vertretung vor"
   ],
-  "pruef": "78162f2c4c4b9a214eff12ba0c254991f65f5d70e3097ba93b236eb26eaeea2f",
+  "pruef": "38984589d4ee347b621888b051e655b4292f179bf2a742d072f9758b6ff82823",
   "datei": "Vertretung.js.enc",
   "verschluesselt": true,
-  "nonce": "ff446816fb3c0ecb7e421181"
+  "nonce": "8293cfe5a33a138d1083e04b"
 }
