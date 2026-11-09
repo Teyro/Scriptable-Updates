@@ -1,12 +1,12 @@
 {
   "name": "Mein-Tag",
-  "version": "3.2",
+  "version": "3.3",
   "datum": "2026-11-09",
   "neu": [
-    "Vertretungsplan: immer der Plan für heute (Datum im Dateinamen, sonst Wochentag – auch wenn alle Dateien neu gespeichert wurden)"
+    "An die Guten-Morgen-App übergeben: Kürzel, Vertretungs-Ordner, Häuser, Kollegium, Kantine und Schulobst mit einem Tipp"
   ],
-  "pruef": "b4bce12de1deaad7e488e0b4557e469a249e82a354a3b0ca915ed0befacb02bf",
+  "pruef": "4b9dae75b08a06d75f258c52d35985878cb86c4ff2580d15dfed316558d1a381",
   "datei": "IServ-Abwesenheiten.js.enc",
   "verschluesselt": true,
-  "nonce": "090a3c4166ca3cb461262124"
+  "nonce": "13cf8d6edde554aa49a6f1a9"
 }

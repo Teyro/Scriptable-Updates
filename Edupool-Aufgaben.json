@@ -1,12 +1,12 @@
 {
   "name": "Mein-Tag",
-  "version": "3.2",
+  "version": "3.3",
   "datum": "2026-11-09",
   "neu": [
-    "Vertretungsplan: immer der Plan für heute (Datum im Dateinamen, sonst Wochentag – auch wenn alle Dateien neu gespeichert wurden)"
+    "An die Guten-Morgen-App übergeben: Kürzel, Vertretungs-Ordner, Häuser, Kollegium, Kantine und Schulobst mit einem Tipp"
   ],
-  "pruef": "fcb5005f673f7e05cc05a4637093befcc0123b670972ed999edcee99741358ab",
+  "pruef": "f6ecb37ee720ccf772888725c9d01901c7206682559844a37ace2ade47b4eba6",
   "datei": "Edupool-Aufgaben.js.enc",
   "verschluesselt": true,
-  "nonce": "21615fdb2202356bcf1d7656"
+  "nonce": "e3df6260e8b8ff810fd5d1b7"
 }

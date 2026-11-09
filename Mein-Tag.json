@@ -1,12 +1,12 @@
 {
   "name": "Mein-Tag",
-  "version": "3.2",
+  "version": "3.3",
   "datum": "2026-11-09",
   "neu": [
-    "Vertretungsplan: immer der Plan für heute (Datum im Dateinamen, sonst Wochentag – auch wenn alle Dateien neu gespeichert wurden)"
+    "An die Guten-Morgen-App übergeben: Kürzel, Vertretungs-Ordner, Häuser, Kollegium, Kantine und Schulobst mit einem Tipp"
   ],
-  "pruef": "b4a7a0c933d5b0e96faaf0fa49d8174a8b15e7d133f78135f2e6ed91ba79b685",
+  "pruef": "74f6ebda068aa9c80b9b337edf8d2d22f3d17e311087f3cc5d2cf64242b43d11",
   "datei": "Mein-Tag.js.enc",
   "verschluesselt": true,
-  "nonce": "cb476809c8185886db65cffe"
+  "nonce": "aa4c2e1367fdf1de6eef0060"
 }

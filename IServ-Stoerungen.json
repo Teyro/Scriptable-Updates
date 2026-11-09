@@ -1,12 +1,12 @@
 {
   "name": "Mein-Tag",
-  "version": "3.2",
+  "version": "3.3",
   "datum": "2026-11-09",
   "neu": [
-    "Vertretungsplan: immer der Plan für heute (Datum im Dateinamen, sonst Wochentag – auch wenn alle Dateien neu gespeichert wurden)"
+    "An die Guten-Morgen-App übergeben: Kürzel, Vertretungs-Ordner, Häuser, Kollegium, Kantine und Schulobst mit einem Tipp"
   ],
-  "pruef": "34d5df81c8641e0ed5862a636daa5b80c0a15b7a032355e1a4fe800b6c3b58db",
+  "pruef": "43538354df4cfdc124113e33922ae5854d2e175dd9161bafc79879c2e976c25d",
   "datei": "IServ-Stoerungen.js.enc",
   "verschluesselt": true,
-  "nonce": "ee7145ded923ca3bed139d3b"
+  "nonce": "7280f575f62646c3426e5745"
 }
