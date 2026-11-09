@@ -1,12 +1,12 @@
 {
   "name": "Mein-Tag",
-  "version": "3.3",
+  "version": "3.4",
   "datum": "2026-11-09",
   "neu": [
-    "An die Guten-Morgen-App übergeben: Kürzel, Vertretungs-Ordner, Häuser, Kollegium, Kantine und Schulobst mit einem Tipp"
+    "An Guten Morgen übergeben jetzt auch mit IServ-Zugang, 2FA-Schlüssel, Edupool-Freigabe und gemerkten Gerichten"
   ],
-  "pruef": "84dcc33296b405883592dc04a9e58d4b368bc98899241d385784bb19adf9a043",
+  "pruef": "0e29a062ed571b4f1d1a46d3b472b67eec54614e57afd582bd216d5d988b08d2",
   "datei": "Guten-Morgen.js.enc",
   "verschluesselt": true,
-  "nonce": "abbe32e9cfce69160e8aff91"
+  "nonce": "0055128be37be26303f30005"
 }
