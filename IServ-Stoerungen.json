@@ -1,14 +1,12 @@
 {
   "name": "Mein-Tag",
-  "version": "3.1",
-  "datum": "2026-11-07",
+  "version": "3.2",
+  "datum": "2026-11-09",
   "neu": [
-    "Neues Tages-Dashboard: Mensa, wer im Kollegium fehlt (Kürzel fett + Name), Kacheln, Bemerkungen",
-    "Plan: aus den letzten drei Dateien der passende Tag (Wochenende: Freitag)",
-    "Lädt Mo–Fr um 7:00, 7:10, 7:20, 7:30 und 7:45 neu"
+    "Vertretungsplan: immer der Plan für heute (Datum im Dateinamen, sonst Wochentag – auch wenn alle Dateien neu gespeichert wurden)"
   ],
-  "pruef": "02fba262854b6cf910f37f2bfabfd290c53e11fd2fcc951e6f158d5bda31b68f",
+  "pruef": "34d5df81c8641e0ed5862a636daa5b80c0a15b7a032355e1a4fe800b6c3b58db",
   "datei": "IServ-Stoerungen.js.enc",
   "verschluesselt": true,
-  "nonce": "be3f68fd3544254f7c574036"
+  "nonce": "ee7145ded923ca3bed139d3b"
 }

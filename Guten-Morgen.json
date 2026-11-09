@@ -1,14 +1,12 @@
 {
   "name": "Mein-Tag",
-  "version": "3.1",
-  "datum": "2026-11-07",
+  "version": "3.2",
+  "datum": "2026-11-09",
   "neu": [
-    "Neues Tages-Dashboard: Mensa, wer im Kollegium fehlt (Kürzel fett + Name), Kacheln, Bemerkungen",
-    "Plan: aus den letzten drei Dateien der passende Tag (Wochenende: Freitag)",
-    "Lädt Mo–Fr um 7:00, 7:10, 7:20, 7:30 und 7:45 neu"
+    "Vertretungsplan: immer der Plan für heute (Datum im Dateinamen, sonst Wochentag – auch wenn alle Dateien neu gespeichert wurden)"
   ],
-  "pruef": "0f38eaf1f1a61ca9679fd6bffb170d3f15941e27e5399ad6bc0cfc7325fcfbc3",
+  "pruef": "8764e6788ba0c7cac420e73c9d06a6db5077bbfeb8cfbdc6e0ed4a7778d73bca",
   "datei": "Guten-Morgen.js.enc",
   "verschluesselt": true,
-  "nonce": "0b7d0132306d05b552f647fc"
+  "nonce": "2024f8d495072f5dfc83bd60"
 }

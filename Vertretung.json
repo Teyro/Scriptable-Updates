@@ -1,14 +1,12 @@
 {
   "name": "Mein-Tag",
-  "version": "3.1",
-  "datum": "2026-11-07",
+  "version": "3.2",
+  "datum": "2026-11-09",
   "neu": [
-    "Neues Tages-Dashboard: Mensa, wer im Kollegium fehlt (Kürzel fett + Name), Kacheln, Bemerkungen",
-    "Plan: aus den letzten drei Dateien der passende Tag (Wochenende: Freitag)",
-    "Lädt Mo–Fr um 7:00, 7:10, 7:20, 7:30 und 7:45 neu"
+    "Vertretungsplan: immer der Plan für heute (Datum im Dateinamen, sonst Wochentag – auch wenn alle Dateien neu gespeichert wurden)"
   ],
-  "pruef": "af15ccce7769f7649f88241874389e90578363082d971c6ec55d539d9fe692f3",
+  "pruef": "b42645f02cc68fdf33d0cda7fe2345816e3bafca616eb01e6e2ee0dddae7e3ad",
   "datei": "Vertretung.js.enc",
   "verschluesselt": true,
-  "nonce": "1cf28b682024d10a4624280d"
+  "nonce": "df1d9e3019a162932bfcb9af"
 }
