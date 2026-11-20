@@ -1,0 +1,12 @@
+{
+  "name": "DammAPP",
+  "version": "1.0",
+  "datum": "2026-11-20",
+  "neu": [
+    "Erste Fassung: DammAPP als Scriptable-App mit Startseite, Schultag, Vertretung, Stundenplan, Speiseplan, IServ, Edupool, Einstellungen und Widget"
+  ],
+  "pruef": "97e6617a60964423bfef5edb7ddebc88aedb43a41c7dcb2edfe6499890188d59",
+  "datei": "DammAPP.js.enc",
+  "verschluesselt": true,
+  "nonce": "563fc8db723364da3b4fb64e"
+}
