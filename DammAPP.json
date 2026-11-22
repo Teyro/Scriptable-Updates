@@ -1,12 +1,13 @@
 {
   "name": "DammAPP",
-  "version": "1.0",
-  "datum": "2026-11-20",
+  "version": "1.1",
+  "datum": "2026-11-22",
   "neu": [
-    "Erste Fassung: DammAPP als Scriptable-App mit Startseite, Schultag, Vertretung, Stundenplan, Speiseplan, IServ, Edupool, Einstellungen und Widget"
+    "Untis-Sicherung: fällt WebUntis aus, kommen die Stunden aus der täglichen Sicherung",
+    "Mein Stundenplan: von Hand Eingetragenes bleibt, Untis füllt nur freie Stunden"
   ],
-  "pruef": "97e6617a60964423bfef5edb7ddebc88aedb43a41c7dcb2edfe6499890188d59",
+  "pruef": "a2ad63c01daa0aa97a2d76ad7acceadf65c49a11372932c4ef5ce367dba1443c",
   "datei": "DammAPP.js.enc",
   "verschluesselt": true,
-  "nonce": "563fc8db723364da3b4fb64e"
+  "nonce": "95f87e7be0f6e82b8714271c"
 }
