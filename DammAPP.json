@@ -1,13 +1,13 @@
 {
   "name": "DammAPP",
-  "version": "1.1",
+  "version": "1.2",
   "datum": "2026-11-22",
   "neu": [
-    "Untis-Sicherung: fällt WebUntis aus, kommen die Stunden aus der täglichen Sicherung",
-    "Mein Stundenplan: von Hand Eingetragenes bleibt, Untis füllt nur freie Stunden"
+    "Widget: Stunden in den Fachfarben wie DammTable (Deutsch rot, Mathe blau, Sachunterricht grün …)",
+    "Was heute schon gelaufen ist, wird ausgegraut"
   ],
-  "pruef": "a2ad63c01daa0aa97a2d76ad7acceadf65c49a11372932c4ef5ce367dba1443c",
+  "pruef": "417b5b6c3c047fe31e111151f677f2a740e5952b5d3d787e70efb1ecc3d90157",
   "datei": "DammAPP.js.enc",
   "verschluesselt": true,
-  "nonce": "95f87e7be0f6e82b8714271c"
+  "nonce": "a3740fdfaa98ca6ae2a4f496"
 }
