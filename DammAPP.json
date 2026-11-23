@@ -1,14 +1,12 @@
 {
   "name": "DammAPP",
-  "version": "1.3",
-  "datum": "2026-11-22",
+  "version": "1.4",
+  "datum": "2026-11-23",
   "neu": [
-    "Speiseplan zeigt ab 14 Uhr schon den nächsten Schultag (Freitagnachmittag: nächste Woche)",
-    "Begleitungen aus der Wichtig-Zeile für dein Kürzel",
-    "Eigenes Feld für dein Kürzel in Untis"
+    "Speiseplan: Wochen mit Überschrift und wie oft es etwas aus deinen Favoriten gibt"
   ],
-  "pruef": "0d226a4600033403e9d6da2b558904d9a3a8573ee2c9a88732c59669ab139443",
+  "pruef": "e7913f904d354e557cb695a27b9a11d99bf611888b1e1db052cb570dbc31b32d",
   "datei": "DammAPP.js.enc",
   "verschluesselt": true,
-  "nonce": "c0eb0b5053d054df22d0f7f6"
+  "nonce": "1ca15dcb2b6f358794216fd1"
 }
