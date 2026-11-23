@@ -1,12 +1,12 @@
 {
   "name": "DammAPP",
-  "version": "1.4",
+  "version": "1.5",
   "datum": "2026-11-23",
   "neu": [
-    "Speiseplan: Wochen mit Überschrift und wie oft es etwas aus deinen Favoriten gibt"
+    "0. Stunde (Frühbetreuung) und Begleitungen aus der Wichtig-Zeile im Stundenplan"
   ],
-  "pruef": "e7913f904d354e557cb695a27b9a11d99bf611888b1e1db052cb570dbc31b32d",
+  "pruef": "b3a65cfa9bf74231cf4cbd7be29353c3071b693d48eddc94ce068cbb7ec89770",
   "datei": "DammAPP.js.enc",
   "verschluesselt": true,
-  "nonce": "1ca15dcb2b6f358794216fd1"
+  "nonce": "49ad8f9f2ebe065e4efb66d7"
 }
